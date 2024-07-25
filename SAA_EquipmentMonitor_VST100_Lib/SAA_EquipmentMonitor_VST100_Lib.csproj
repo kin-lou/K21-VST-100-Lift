@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Dapper" Version="2.0.151" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.4" />
+    <PackageReference Include="NLog" Version="5.2.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SAA_MsSqlData\SAA_MsSqlData.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Lib\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SAA.Common.Database">
+      <HintPath>..\..\..\VST-100\SAA_EquipmentMonitor_VST100\Lib\SAA.Common.Database.dll</HintPath>
+    </Reference>
+    <Reference Include="SAA.Common.Database.MsSql">
+      <HintPath>..\..\..\VST-100\SAA_EquipmentMonitor_VST100\Lib\SAA.Common.Database.MsSql.dll</HintPath>
+    </Reference>
+    <Reference Include="SAA.Core.PLC">
+      <HintPath>..\Lib\SAA.Core.PLC.dll</HintPath>
+    </Reference>
+    <Reference Include="SAA.Core.PLC.Slmp">
+      <HintPath>..\Lib\SAA.Core.PLC.Slmp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Config\SystemSetting.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

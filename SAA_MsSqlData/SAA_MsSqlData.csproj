@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="SAA.Common.Database">
+      <HintPath>..\Lib\SAA.Common.Database.dll</HintPath>
+    </Reference>
+    <Reference Include="SAA.Common.Database.MsSql">
+      <HintPath>..\Lib\SAA.Common.Database.MsSql.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

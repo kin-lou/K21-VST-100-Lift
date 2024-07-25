@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "SAA.Core.PLC.Slmp/1.0.0": {
+        "dependencies": {
+          "SAA.Core.PLC": "1.0.0"
+        },
+        "runtime": {
+          "SAA.Core.PLC.Slmp.dll": {}
+        }
+      },
+      "SAA.Core.PLC/1.0.0": {
+        "runtime": {
+          "SAA.Core.PLC.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SAA.Core.PLC.Slmp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "SAA.Core.PLC/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
