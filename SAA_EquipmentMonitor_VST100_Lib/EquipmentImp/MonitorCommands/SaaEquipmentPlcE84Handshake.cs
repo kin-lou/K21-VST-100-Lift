@@ -71,11 +71,9 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                 int[] e84pc = { LiftE84Pc.HOA_VBL, LiftE84Pc.ES, LiftE84Pc.L_REQ, LiftE84Pc.U_REQ, LiftE84Pc.READY, 0, LiftE84Pc.VA, LiftE84Pc.VS_0, LiftE84Pc.VS_1 };
                 SaaEquipmentPlc?.WriteIntArray("B", "300", e84pc);
                 SAA_Database.LogMessage($"【{LiftE84Pc.STATION_NAME}】【E84監控】【B300】寫入PLC資料:HO_AVBL:{e84pc[0]}，ES:{e84pc[1]}，L_REQ:{e84pc[2]}，U_REQ:{e84pc[3]}，Ready:{e84pc[4]}，VA:{e84pc[6]}，VS_0:{e84pc[7]}，VS_1:{e84pc[8]}");
-                SAA_Database.LogMessage($"E84站點【{LiftE84Pc.STATION_NAME}】結束寫入PLC E84訊號");
+                SAA_Database.LogMessage($"【{LiftE84Pc.STATION_NAME}】【E84監控】結束寫入PLC E84訊號");
             }
         }
-
-
 
         #region [===更新時間心跳包===]
         public async void SaaEquipmentUpdDateTimeLifebitClock(SaaEquipmentPlcOffsetAttributes SaaEquipmentPlcOffset)
@@ -908,6 +906,26 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     SAA_Database.LogMessage($"【{station_naem}】【{SaaEquipmentgroup.DataLocal}】刪除SC_COMMAND_TASK匣資訊卡匣ID:{SaaEquipmentgroup.DataCarrierId}");
                                 }
                             }
+
+                            var LocationidShelfdata = SAA_Database.SaaSql?.GetScLocationsettingLocationidShelf(station_naem, SaaEquipmentgroup.DataLocal);
+                            if (LocationidShelfdata != null)
+                            {
+                                if (LocationidShelfdata?.Rows.Count != 0)
+                                {
+                                    if (LocationidShelfdata?.Rows[0]["LOCATIONTYPE"].ToString() == "Shelf")
+                                    {
+                                        var commandtaskdata = SAA_Database.SaaSql?.GetScCommandTask(station_naem, SaaEquipmentgroup.DataCarrierId);
+                                        if (commandtaskdata!=null)
+                                        {
+                                            if (commandtaskdata.Rows.Count != 0)
+                                            {
+                                                SAA_Database.SaaSql?.DelScCommandTask(station_naem, SaaEquipmentgroup.DataCarrierId);
+                                                SAA_Database.LogMessage($"【{station_naem}】【刪除資料】重新放回儲格 卡匣ID:{SaaEquipmentgroup.DataCarrierId} 儲格位置: {SaaEquipmentgroup.DataLocal}，刪除搬運資料SC_COMMAND_TASK(站點:{station_naem}卡匣ID:{SaaEquipmentgroup.DataCarrierId})");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         if (SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Move || SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Establish || SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Have)
@@ -1226,7 +1244,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                             else
                             {
                                 string carrierflag = !string.IsNullOrEmpty(equipmentcarrierinfo?.Rows[0]["CARRIERFLAG"].ToString()) ? equipmentcarrierinfo?.Rows[0]["CARRIERFLAG"].ToString()! : string.Empty;
-                                if (string.IsNullOrEmpty(carrierflag)) 
+                                if (string.IsNullOrEmpty(carrierflag))
                                 {
                                     SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
                                     {

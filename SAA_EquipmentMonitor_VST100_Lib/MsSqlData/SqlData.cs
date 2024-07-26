@@ -632,6 +632,17 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
             return sqlreport;
         }
 
+        public DataTable GetScLocationsettingLocationidShelf(string statiom_name, string locationid)
+        {
+            DataTable sqlreport;
+            while (true)
+            {
+                sqlreport = SaaSql.QuerySqlByAutoOpen("SELECT * FROM SC_LOCATIONSETTING Where STATIOM_NAME = '" + statiom_name + "' And LOCATIONID = '" + locationid + "'")!;
+                if (sqlreport != null) break;
+            }
+            return sqlreport;
+        }
+
         public DataTable GetScCommandTask(string setno, string model_name, string stationname)
         {
             DataTable sqlreport;
