@@ -1,6 +1,10 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -416,6 +420,59 @@ namespace SAA_EquipmentMonitor_VST100_Lib
             VS_1,
             SELECT,
             RESULT,
+        }
+
+        public enum SC_LOCATIONSETTING
+        {
+            SETNO,
+            MODEL_NAME,
+            STATIOM_NAME,
+            LOCATIONID,
+            HOSTID,
+            CARRIERID,
+            PARTNO,
+            BANK,
+            BAY,
+            LV,
+            LOCATIONSTATUS,
+            LOCATIONMODE,
+            LOCATIONTYPE,
+            INVENTORYFULL,
+            ZONEID,
+            LOCATIONPRIORITIZ,
+            PUTTIME,
+        }
+
+        public enum SC_EQUIPMENT_CARRIER_INFO
+        {
+            SETNO,
+            MODEL_NAME,
+            STATIOM_NAME,
+            CARRIERID,
+            PARTNO,
+            REMOTE,
+            CARRIERTYOE,
+            ROTFLAG,
+            FLIPFLAG,
+            OPER,
+            RECIPE,
+            ORIGIN,
+            DESTINATION,
+            CARRIERSTATE,
+            DESTINATIONTYPE,
+            QTIME,
+            CYCLETIME,
+            REJECT_CODE,
+            REJECT_MESSAGE,
+            CARRIERFLAG,
+        }
+
+        public enum SC_REJECT_LIST_PLC
+        {
+            PLC_REJECT_CODE,
+            REMOTE_REJECT_CODE,
+            REMOTE_REJECT_MSG,
+            COMMENT,
         }
     }
 }

@@ -915,7 +915,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     if (LocationidShelfdata?.Rows[0]["LOCATIONTYPE"].ToString() == "Shelf")
                                     {
                                         var commandtaskdata = SAA_Database.SaaSql?.GetScCommandTask(station_naem, SaaEquipmentgroup.DataCarrierId);
-                                        if (commandtaskdata!=null)
+                                        if (commandtaskdata != null)
                                         {
                                             if (commandtaskdata.Rows.Count != 0)
                                             {
@@ -1202,7 +1202,6 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
 
                         if (SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Ask)
                         {
-
                             SaaScPurchase purchasedata = new SaaScPurchase
                             {
                                 TASKDATETIME = SAA_Database.ReadTime(),
@@ -1284,14 +1283,46 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 string commandid = SAA_Database.EquipmentCommon.Reply;
                                 string reply = purchasedata.Rows[0]["REPLY"].ToString()!;
                                 string local = purchasedata.Rows[0]["LOCAL"].ToString()!;
-                                var data = SAA_Database.SaaSql?.GetPurchase(carrierid);
+                                var data = local == "PGV-OUT" ? SAA_Database.SaaSql?.GetPurchasePgvOut(carrierid) : SAA_Database.SaaSql?.GetPurchase(carrierid);
                                 if (data!.Rows.Count != 0)
                                 {
-                                    string replyresult = data.Rows[0]["REPLYRESULT"].ToString()!;
+                                    string replyresult = string.Empty;
+                                    int writereply = 0;
+                                    if (local == "PGV-OUT")
+                                    {
+                                        var equipmentcarrierinfo = SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(station_naem, SaaEquipmentgroup.DataCarrierId);
+                                        if (equipmentcarrierinfo?.Rows.Count != 0)
+                                        {
+                                            SaaEquipmentCarrierInfo carrierinfo = new SaaEquipmentCarrierInfo
+                                            {
+                                                REJECT_CODE = equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.REJECT_CODE.ToString()].ToString()!,
+                                                REJECT_MESSAGE = equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.REJECT_MESSAGE.ToString()].ToString()!,
+                                            };
+                                            var rejectlistplcdata = SAA_Database.SaaSql?.GetScRejectListPlc(carrierinfo.REJECT_CODE);
+                                            if (rejectlistplcdata != null)
+                                            {
+                                                if (rejectlistplcdata.Rows.Count != 0)
+                                                {
+                                                    writereply = int.Parse(rejectlistplcdata.Rows[0][SAA_DatabaseEnum.SC_REJECT_LIST_PLC.PLC_REJECT_CODE.ToString()].ToString()!);
+                                                    SAA_Database.LogMessage($"【{station_naem}】【監控答覆】PLC 退盒編號:{writereply}，卡匣ID:{carrierid}，退盒原因:{rejectlistplcdata.Rows[0][SAA_DatabaseEnum.SC_REJECT_LIST_PLC.REMOTE_REJECT_MSG.ToString()]!}");
+                                                }
+                                            }
+                                        }
+                                        if (writereply == 0)
+                                        {
+                                            writereply = 1;
+                                            SAA_Database.LogMessage($"【{station_naem}】【監控答覆】【查無此資料】PLC 退盒編號:{writereply}，卡匣ID:{carrierid}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        replyresult = data.Rows[0]["REPLYRESULT"].ToString()!;
+                                        writereply = replyresult == SAA_DatabaseEnum.SaaSendReply.Y.ToString() ? 1 : 4;
+                                    }
                                     if (replyresult != string.Empty)
                                     {
-                                        int writereply = replyresult == SAA_DatabaseEnum.SaaSendReply.Y.ToString() ? 1 : 4;
-                                        SAA_Database.LogMessage($"【{station_naem}】【監控答覆】卡匣ID:{carrierid}接收到答覆結果:{replyresult}");
+                                        if (local != "PGV-OUT")
+                                            SAA_Database.LogMessage($"【{station_naem}】【監控答覆】卡匣ID:{carrierid}接收到答覆結果:{replyresult}");
 
                                         SaaEquipmentPlc?.WriteInt(SAA_Database.saaequipmentbitoffset.SaaDB_DataCountAck, SAA_Database.saaequipmentbitoffset.SaaValue_DataCountAck, 1);
                                         SAA_Database.LogMessage($"【{station_naem}】【監控答覆】【{SAA_Database.saaequipmentbitoffset.SaaDB_DataCountAck}{SAA_Database.saaequipmentbitoffset.SaaValue_DataCountAck}】PC寫入資料組數1");
@@ -1471,13 +1502,6 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                 EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6B0", 45)!;
                 if (EquipmentOffset.PlcCommandOffset[17] == 1)
                 {
-                    //int[] carrieridarray = SaaEquipmentPlc?.ReadIntArray("W", "2C0", 10)!;
-                    //string carrierid = ReadSringArray(carrieridarray);
-                    //var commandtaskdata = SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME, carrierid);
-                    //if (commandtaskdata != null)
-                    //{
-                    //    DelCommandTask(commandtaskdata, EquipmentPlcOffset.STATION_NAME, "PGV-OUT");
-                    //}
                     SaaEquipmentPlc?.WriteBool("B", "2C0", false);
                     SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC已傳送命令給PLC，W_FICS為 False");
                 }
@@ -1485,13 +1509,6 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                 EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6D0", 45)!;
                 if (EquipmentOffset.PlcCommandOffset[1] == 1)
                 {
-                    //int[] carrieridarray = SaaEquipmentPlc?.ReadIntArray("W", "2D0", 10)!;
-                    //string carrierid = ReadSringArray(carrieridarray);
-                    //var commandtaskdata = SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME, carrierid);
-                    //if (commandtaskdata != null)
-                    //{
-                    //    DelCommandTask(commandtaskdata, EquipmentPlcOffset.STATION_NAME, "DK-IN");
-                    //}
                     SaaEquipmentPlc?.WriteBool("B", "2D0", false);
                     SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC已傳送命令給PLC，W_FICS為 False");
                 }

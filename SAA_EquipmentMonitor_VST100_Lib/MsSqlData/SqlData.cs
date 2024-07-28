@@ -556,6 +556,11 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
             return SaaSql.QuerySqlByAutoOpen("SELECT * FROM SC_PURCHASE WHERE CARRIERID = '" + carrierid + "' AND ReplyResult is not NULL")!;
         }
 
+        public DataTable GetPurchasePgvOut(string carrierid)
+        {
+            return SaaSql.QuerySqlByAutoOpen("SELECT * FROM SC_PURCHASE WHERE CARRIERID = '" + carrierid + "'")!;
+        }
+
         public DataTable GetScLifte84PC(string station_name)
         {
             return SaaSql.QuerySqlByAutoOpen("Select * From SC_LIFT_E84PC Where STATION_NAME = '" + station_name + "' And (RESULT is null or RESULT = 'R') Order By TASKDATETIME")!;
@@ -883,6 +888,11 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
         public DataTable GetScTransportrEquirementMaterialCarrierId(string carrierid)
         {
             return SaaSql.QuerySqlByAutoOpen("Select * From SC_TRANSPORTR_EQUIREMENT_MATERIAL Where  CARRIERID = '" + carrierid + "'")!;
+        }
+
+        public DataTable GetScRejectListPlc(string remoterejectcode)
+        {
+            return SaaSql.QuerySqlByAutoOpen("Select * From SC_REJECT_LIST_PLC Where  REMOTE_REJECT_CODE = '" + remoterejectcode + "'")!;
         }
     }
 }
