@@ -1313,6 +1313,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                             writereply = 1;
                                             SAA_Database.LogMessage($"【{station_naem}】【監控答覆】【查無此資料】PLC 退盒編號:{writereply}，卡匣ID:{carrierid}");
                                         }
+                                        replyresult = SAA_DatabaseEnum.SendFlag.Y.ToString();
                                     }
                                     else
                                     {
