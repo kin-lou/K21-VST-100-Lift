@@ -25,9 +25,9 @@ namespace SAA_EquipmentMonitor_VST100
         /// 版本資訊
         /// </summary>
         /// <returns></returns>
-        public static string? GetEdition()
+        public static Version? GetEdition()
         {
-            return "100.24.06.19";
+            return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
         }
         #endregion
 

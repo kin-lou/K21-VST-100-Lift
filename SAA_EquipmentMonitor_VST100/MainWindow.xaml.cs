@@ -72,8 +72,8 @@ namespace SAA_EquipmentMonitor_VST100
                             };
                             SaaEquipmentLib saaequipmentlib = new SaaEquipmentLib();
                             saaequipmentlib.SaaEquipmentMonitorStart(SaaEquipmentPlc);
-                            SAA_Database.LogMessage($"【監控程式】【{SaaEquipmentPlc.EquipmentStation}】程式啟動開始連線");
-                            SAA_Database.LogMessage($"【監控程式】【{SaaEquipmentPlc.EquipmentStation}】開始讀取相關點位");
+                            SAA_Database.LogMessage($"【{SaaEquipmentPlc.EquipmentStation}】【監控程式】程式啟動開始連線");
+                            SAA_Database.LogMessage($"【{SaaEquipmentPlc.EquipmentStation}】【監控程式】開始讀取相關點位");
                         }
                     }
                 }

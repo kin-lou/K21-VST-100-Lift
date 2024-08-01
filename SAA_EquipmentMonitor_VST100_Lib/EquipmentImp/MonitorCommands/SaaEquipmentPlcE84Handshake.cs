@@ -1406,159 +1406,175 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
         {
             try
             {
-                int[] EquipmentSiteOffsetDkIn = SaaEquipmentPlc?.ReadIntArray("B", "2D0", 8)!;
-                int[] EquipmentSiteOffsetPgvOut = SaaEquipmentPlc?.ReadIntArray("B", "2C0", 8)!;
-                if (EquipmentSiteOffsetDkIn[0] == 0 && EquipmentSiteOffsetPgvOut[0] == 0)
+                if (EquipmentOffset.PlcRequest != null)
                 {
-                    var commandtaskdata = SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
-                    if (commandtaskdata!.Rows.Count != 0)
+                    if (EquipmentOffset.PlcRequest[0] == 1)
                     {
-                        SaaScCommandTask CommandTask = new SaaScCommandTask()
+                        int[] EquipmentSiteOffsetDkIn = SaaEquipmentPlc?.ReadIntArray("B", "2D0", 8)!;
+                        int[] EquipmentSiteOffsetPgvOut = SaaEquipmentPlc?.ReadIntArray("B", "2C0", 8)!;
+                        if (EquipmentSiteOffsetDkIn[0] == 0 && EquipmentSiteOffsetPgvOut[0] == 0)
                         {
-                            TASKDATETIME = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.TASKDATETIME.ToString()].ToString()!,
-                            SETNO = int.Parse(commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.SETNO.ToString()].ToString()!),
-                            MODEL_NAME = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.MODEL_NAME.ToString()].ToString()!,
-                            STATION_NAME = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.STATION_NAME.ToString()].ToString()!,
-                            COMMANDID = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.COMMANDID.ToString()].ToString()!,
-                            CARRIERID = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.CARRIERID.ToString()].ToString()!,
-                            LOCATIONTAKE = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.LOCATIONTAKE.ToString()].ToString()!,
-                            LOCATIONPUT = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.LOCATIONPUT.ToString()].ToString()!,
-                            RESULT = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.RESULT.ToString()].ToString()!
-                        };
-                        List<int> carrieridlist = ReadStringToInt(CommandTask.CARRIERID);
-                        int[] carrierid = new int[10];
-                        for (int i = 0; i < carrierid.Length; i++)
-                        {
-                            carrierid[i] = carrieridlist.Count > i ? carrieridlist[i] : 0;
-                        }
-                        if (CommandTask.LOCATIONPUT == "PGV-OUT")
-                        {
-                            SaaEquipmentPlc?.WriteIntArray(SAA_Database.configattributes.SaaOffsetWord, "2C0", carrierid);
-                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC寫入卡匣ID:{CommandTask.CARRIERID}");
-                            SaaEquipmentPlc?.WriteBool("B", "2C0", true);
-                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC已傳送命令給PLC，W_FICS為 True");
-
-                            DateTime dtStart = DateTime.Now;
-                            while (true)
+                            var commandtaskdata = SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
+                            if (commandtaskdata!.Rows.Count != 0)
                             {
-                                EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6B0", 45)!;
-                                TimeSpan waitTime = new TimeSpan(DateTime.Now.Ticks - dtStart.Ticks);
-                                if (EquipmentOffset.PlcCommandOffset[16] == 1)
+                                SaaScCommandTask CommandTask = new SaaScCommandTask()
                                 {
-                                    if (waitTime.TotalSeconds >= 1)
+                                    TASKDATETIME = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.TASKDATETIME.ToString()].ToString()!,
+                                    SETNO = int.Parse(commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.SETNO.ToString()].ToString()!),
+                                    MODEL_NAME = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.MODEL_NAME.ToString()].ToString()!,
+                                    STATION_NAME = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.STATION_NAME.ToString()].ToString()!,
+                                    COMMANDID = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.COMMANDID.ToString()].ToString()!,
+                                    CARRIERID = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.CARRIERID.ToString()].ToString()!,
+                                    LOCATIONTAKE = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.LOCATIONTAKE.ToString()].ToString()!,
+                                    LOCATIONPUT = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.LOCATIONPUT.ToString()].ToString()!,
+                                    RESULT = commandtaskdata.Rows[0][SAA_DatabaseEnum.SC_COMMAND_TASK.RESULT.ToString()].ToString()!
+                                };
+                                List<int> carrieridlist = ReadStringToInt(CommandTask.CARRIERID);
+                                int[] carrierid = new int[10];
+                                for (int i = 0; i < carrierid.Length; i++)
+                                {
+                                    carrierid[i] = carrieridlist.Count > i ? carrieridlist[i] : 0;
+                                }
+                                if (CommandTask.LOCATIONPUT == "PGV-OUT")
+                                {
+                                    SaaEquipmentPlc?.WriteIntArray(SAA_Database.configattributes.SaaOffsetWord, "2C0", carrierid);
+                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC寫入卡匣ID:{CommandTask.CARRIERID}");
+                                    SaaEquipmentPlc?.WriteBool("B", "2C0", true);
+                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC已傳送命令給PLC，W_FICS為 True");
+
+                                    DateTime dtStart = DateTime.Now;
+                                    while (true)
                                     {
-                                        CommandTask.RESULT = SAA_DatabaseEnum.SendFlag.Y.ToString();
-                                        SAA_Database.SaaSql?.UpdScCommandTask(CommandTask);
-                                        break;
+                                        EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6B0", 45)!;
+                                        if (EquipmentOffset.PlcCommandOffset.Length >= 18)
+                                        {
+                                            TimeSpan waitTime = new TimeSpan(DateTime.Now.Ticks - dtStart.Ticks);
+                                            if (EquipmentOffset.PlcCommandOffset[16] == 1)
+                                            {
+                                                if (waitTime.TotalSeconds >= 1)
+                                                {
+                                                    CommandTask.RESULT = SAA_DatabaseEnum.SendFlag.Y.ToString();
+                                                    SAA_Database.SaaSql?.UpdScCommandTask(CommandTask);
+                                                    break;
+                                                }
+                                            }
+                                            if (EquipmentOffset.PlcCommandOffset[17] == 1)
+                                            {
+                                                if (waitTime.TotalSeconds >= 3)
+                                                {
+                                                    DelCommandTask(commandtaskdata, EquipmentPlcOffset.STATION_NAME, "PGV-OUT");
+                                                    SaaEquipmentPlc?.WriteBool("B", "2C0", false);
+                                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC已傳送命令給PLC，W_FICS為 False");
+                                                    break;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
-                                if (EquipmentOffset.PlcCommandOffset[17] == 1)
+                                else if (CommandTask.LOCATIONPUT == "DK-IN")
                                 {
-                                    if (waitTime.TotalSeconds >= 3)
+                                    SaaEquipmentPlc?.WriteIntArray(SAA_Database.configattributes.SaaOffsetWord, "2D0", carrierid);
+                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC寫入卡匣ID:{CommandTask.CARRIERID}");
+                                    SaaEquipmentPlc?.WriteBool("B", "2D0", true);
+                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC已傳送命令給PLC，W_FICS為 True");
+
+                                    DateTime dtStart = DateTime.Now;
+                                    while (true)
                                     {
-                                        DelCommandTask(commandtaskdata, EquipmentPlcOffset.STATION_NAME, "PGV-OUT");
-                                        SaaEquipmentPlc?.WriteBool("B", "2C0", false);
-                                        SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC已傳送命令給PLC，W_FICS為 False");
-                                        break;
+                                        EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6D0", 45)!;
+                                        if (EquipmentOffset.PlcCommandOffset.Length >= 5)
+                                        {
+                                            TimeSpan waitTime = new TimeSpan(DateTime.Now.Ticks - dtStart.Ticks);
+                                            if (EquipmentOffset.PlcCommandOffset[0] == 1)
+                                            {
+                                                if (waitTime.TotalSeconds >= 3)
+                                                {
+                                                    CommandTask.RESULT = SAA_DatabaseEnum.SendFlag.Y.ToString();
+                                                    SAA_Database.SaaSql?.UpdScCommandTask(CommandTask);
+                                                    break;
+                                                }
+                                            }
+                                            if (EquipmentOffset.PlcCommandOffset[1] == 1)
+                                            {
+                                                if (waitTime.TotalSeconds >= 3)
+                                                {
+                                                    DelCommandTask(commandtaskdata, EquipmentPlcOffset.STATION_NAME, "DK-IN");
+                                                    SaaEquipmentPlc?.WriteBool("B", "2D0", false);
+                                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC已傳送命令給PLC，W_FICS為 False");
+                                                    break;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
-                        else if (CommandTask.LOCATIONPUT == "DK-IN")
-                        {
-                            SaaEquipmentPlc?.WriteIntArray(SAA_Database.configattributes.SaaOffsetWord, "2D0", carrierid);
-                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC寫入卡匣ID:{CommandTask.CARRIERID}");
-                            SaaEquipmentPlc?.WriteBool("B", "2D0", true);
-                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC已傳送命令給PLC，W_FICS為 True");
 
-                            DateTime dtStart = DateTime.Now;
-                            while (true)
+                        EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6B0", 45)!;
+                        if (EquipmentOffset.PlcCommandOffset.Length >= 18)
+                        {
+                            if (EquipmentOffset.PlcCommandOffset[17] == 1)
                             {
-                                EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6D0", 45)!;
-                                TimeSpan waitTime = new TimeSpan(DateTime.Now.Ticks - dtStart.Ticks);
-                                if (EquipmentOffset.PlcCommandOffset[0] == 1)
-                                {
-                                    if (waitTime.TotalSeconds >= 3)
-                                    {
-                                        CommandTask.RESULT = SAA_DatabaseEnum.SendFlag.Y.ToString();
-                                        SAA_Database.SaaSql?.UpdScCommandTask(CommandTask);
-                                        break;
-                                    }
-                                }
-                                if (EquipmentOffset.PlcCommandOffset[1] == 1)
-                                {
-                                    if (waitTime.TotalSeconds >= 3)
-                                    {
-                                        DelCommandTask(commandtaskdata, EquipmentPlcOffset.STATION_NAME, "DK-IN");
-                                        SaaEquipmentPlc?.WriteBool("B", "2D0", false);
-                                        SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC已傳送命令給PLC，W_FICS為 False");
-                                        break;
-                                    }
-                                }
+                                SaaEquipmentPlc?.WriteBool("B", "2C0", false);
+                                SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC已傳送命令給PLC，W_FICS為 False");
                             }
                         }
-                    }
-                }
-
-                EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6B0", 45)!;
-                if (EquipmentOffset.PlcCommandOffset[17] == 1)
-                {
-                    SaaEquipmentPlc?.WriteBool("B", "2C0", false);
-                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至PGV-OUT】PC已傳送命令給PLC，W_FICS為 False");
-                }
-
-                EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6D0", 45)!;
-                if (EquipmentOffset.PlcCommandOffset[1] == 1)
-                {
-                    SaaEquipmentPlc?.WriteBool("B", "2D0", false);
-                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC已傳送命令給PLC，W_FICS為 False");
-                }
-
-                SaaScLiftCarrierInfo scliftcarrierinfo = new SaaScLiftCarrierInfo
-                {
-                    SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                    MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                    STATION_NAME = EquipmentPlcOffset.STATION_NAME,
-                    CARRIERTYPE = "2",//1:實盒 2:空盒
-                };
-                var liftcarrierinfodata = SAA_Database.SaaSql?.GetLiftCarrierInfoEmpty(scliftcarrierinfo);
-                if (liftcarrierinfodata != null)
-                {
-                    if (liftcarrierinfodata.Rows.Count != 0)
-                    {
-                        SaaScTransportrEquirement ScTransportrEquirement = new SaaScTransportrEquirement
+                        EquipmentOffset.PlcCommandOffset = SaaEquipmentPlc?.ReadIntArray("B", "6D0", 45)!;
+                        if (EquipmentOffset.PlcCommandOffset.Length >= 18)
                         {
-                            SETNO = EquipmentPlcOffset.SETNO,
+                            if (EquipmentOffset.PlcCommandOffset[1] == 1)
+                            {
+                                SaaEquipmentPlc?.WriteBool("B", "2D0", false);
+                                SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【手臂搬運】【卡匣傳送至DK-IN】PC已傳送命令給PLC，W_FICS為 False");
+                            }
+                        }
+                        SaaScLiftCarrierInfo scliftcarrierinfo = new SaaScLiftCarrierInfo
+                        {
+                            SETNO = int.Parse(EquipmentPlcOffset.SETNO),
                             MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
                             STATION_NAME = EquipmentPlcOffset.STATION_NAME,
-                            REPORT_STATION = EquipmentPlcOffset.STATION_NAME,
-                            REPORT_TIME = SAA_Database.ReadTeidTime(),
-                            CARRIERID = liftcarrierinfodata.Rows[0]["CARRIERID"].ToString()!,
-                            REQUIREMENT_TYPE = scliftcarrierinfo.CARRIERTYPE,
-                            BEGIN_STATION = EquipmentPlcOffset.STATION_NAME,
-                            END_STATION = "NA"
+                            CARRIERTYPE = "2",//1:實盒 2:空盒
                         };
-                        ScTransportrEquirement.REPORTID = $"{ScTransportrEquirement.REPORT_STATION}_{ScTransportrEquirement.REPORT_TIME}";
-                        var devicemodel = SAA_Database.SaaSql?.GetScDeviceModelName(int.Parse(EquipmentPlcOffset.SETNO), EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
-                        if (devicemodel?.Rows.Count != 0)
+                        var liftcarrierinfodata = SAA_Database.SaaSql?.GetLiftCarrierInfoEmpty(scliftcarrierinfo);
+                        if (liftcarrierinfodata != null)
                         {
-                            if (devicemodel?.Rows[0]["DEVICETYPE"].ToString() == "1")
+                            if (liftcarrierinfodata.Rows.Count != 0)
                             {
-
-                                SaaScLocationSetting SaaSettingCarrierId = new SaaScLocationSetting
+                                SaaScTransportrEquirement ScTransportrEquirement = new SaaScTransportrEquirement
                                 {
-                                    SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                    SETNO = EquipmentPlcOffset.SETNO,
                                     MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                    STATIOM_NAME = EquipmentPlcOffset.STATION_NAME,
-                                    CARRIERID = liftcarrierinfodata?.Rows[0]["CARRIERID"].ToString()!,
+                                    STATION_NAME = EquipmentPlcOffset.STATION_NAME,
+                                    REPORT_STATION = EquipmentPlcOffset.STATION_NAME,
+                                    REPORT_TIME = SAA_Database.ReadTeidTime(),
+                                    CARRIERID = liftcarrierinfodata.Rows[0]["CARRIERID"].ToString()!,
+                                    REQUIREMENT_TYPE = scliftcarrierinfo.CARRIERTYPE,
+                                    BEGIN_STATION = EquipmentPlcOffset.STATION_NAME,
+                                    END_STATION = "NA"
                                 };
-                                var settingcarrieriddata = SAA_Database.SaaSql?.GetScLocationSettingCarrierId(SaaSettingCarrierId);
-                                if (settingcarrieriddata?.Rows.Count != 0)
+                                ScTransportrEquirement.REPORTID = $"{ScTransportrEquirement.REPORT_STATION}_{ScTransportrEquirement.REPORT_TIME}";
+                                var devicemodel = SAA_Database.SaaSql?.GetScDeviceModelName(int.Parse(EquipmentPlcOffset.SETNO), EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
+                                if (devicemodel?.Rows.Count != 0)
                                 {
-                                    SAA_Database.SaaSql?.SetScTransportrEquirement(ScTransportrEquirement);
-                                    SAA_Database.LogMessage($"【{SaaSettingCarrierId.STATIOM_NAME}】新增叫車需求:SC_TRANSPORTR_EQUIREMENT 卡匣ID:{SaaSettingCarrierId.CARRIERID}");
-                                    scliftcarrierinfo.CALL_SHUTTLE = SAA_DatabaseEnum.SendFlag.Y.ToString();
-                                    SAA_Database.SaaSql?.UpdScLiftCarrierInfoCallShuttle(scliftcarrierinfo, ScTransportrEquirement.CARRIERID);
+                                    if (devicemodel?.Rows[0]["DEVICETYPE"].ToString() == "1")
+                                    {
+
+                                        SaaScLocationSetting SaaSettingCarrierId = new SaaScLocationSetting
+                                        {
+                                            SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                            MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                            STATIOM_NAME = EquipmentPlcOffset.STATION_NAME,
+                                            CARRIERID = liftcarrierinfodata?.Rows[0]["CARRIERID"].ToString()!,
+                                        };
+                                        var settingcarrieriddata = SAA_Database.SaaSql?.GetScLocationSettingCarrierId(SaaSettingCarrierId);
+                                        if (settingcarrieriddata?.Rows.Count != 0)
+                                        {
+                                            SAA_Database.SaaSql?.SetScTransportrEquirement(ScTransportrEquirement);
+                                            SAA_Database.LogMessage($"【{SaaSettingCarrierId.STATIOM_NAME}】新增叫車需求:SC_TRANSPORTR_EQUIREMENT 卡匣ID:{SaaSettingCarrierId.CARRIERID}");
+                                            scliftcarrierinfo.CALL_SHUTTLE = SAA_DatabaseEnum.SendFlag.Y.ToString();
+                                            SAA_Database.SaaSql?.UpdScLiftCarrierInfoCallShuttle(scliftcarrierinfo, ScTransportrEquirement.CARRIERID);
+                                        }
+                                    }
                                 }
                             }
                         }
