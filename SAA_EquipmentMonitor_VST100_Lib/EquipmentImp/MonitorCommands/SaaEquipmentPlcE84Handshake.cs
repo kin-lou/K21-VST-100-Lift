@@ -1659,7 +1659,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                         // B451 交握結束
                         if (EquipmentJumpDie[1] == 1)
                         {
-                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B450】JumpDie 結束點位為 {EquipmentJumpDie[1]}");
+                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B451】JumpDie 結束點位為 {EquipmentJumpDie[1]}");
                             SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B451】點位為 true，結束 JumpDie 動作");
 
                             SaaEquipmentPlc?.WriteBool("B", "51", true);
@@ -1676,6 +1676,19 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     break;
                                 }
                             }
+
+                            var LocationSetting = SAA_Database.SaaSql?.GetScLocationSetting(int.Parse(EquipmentPlcOffset.SETNO), EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME, "CRANE")!;
+                            SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
+                            {
+                                TASKDATETIME = SAA_Database.ReadTime(),
+                                SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
+                                CARRIERID = !string.IsNullOrEmpty(LocationSetting?.Rows[0]["CARRIERID"].ToString()) ? LocationSetting?.Rows[0]["CARRIERID"].ToString()! : string.Empty,
+                                REPORE_DATATRACK = "315",
+                            };
+                            SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
+                            SAA_Database.LogMessage($"【{EquipmentReport.STATION_NAEM}】Insert into SC_EQUIPMENT_REPORT 資料，內容 : STATION_NAEM - {EquipmentReport.STATION_NAEM}，CARRIERID - {EquipmentReport.CARRIERID}，REPORE_DATATRACK - {EquipmentReport.REPORE_DATATRACK}");
                         }
                     }
                 }
