@@ -61,17 +61,25 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentPlcImp
         /// <returns></returns>
         public int ReadInt(string db, string offset)
         {
-            lock (plclock)
+            try
             {
-                if (SaaSlmp.IsConnected)
+                lock (plclock)
                 {
-                    return SaaSlmp.Read(db + offset).Data!.ToArray()[0];
+                    if (SaaSlmp.IsConnected)
+                    {
+                        return SaaSlmp.Read(db + offset).Data!.ToArray()[0];
+                    }
+                    else
+                    {
+                        SAA_PlcConnect();
+                        return 0;
+                    }
                 }
-                else
-                {
-                    SAA_PlcConnect();
-                    return 0;
-                }
+            }
+            catch (Exception ex)
+            {
+                SAA_Database.LogMessage($"{ex.Message}-{ex.StackTrace}");
+                return 0;
             }
         }
         #endregion
@@ -226,9 +234,17 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentPlcImp
         /// <returns></returns>
         public bool WriteIntArray(string db, string offset, int[] value)
         {
-            lock (plclock)
+            try
             {
-                return SaaSlmp.WriteBlock(db + offset, value).IsSuccess;
+                lock (plclock)
+                {
+                    return SaaSlmp.WriteBlock(db + offset, value).IsSuccess;
+                }
+            }
+            catch (Exception ex)
+            {
+                SAA_Database.LogMessage($"{ex.StackTrace}-{ex.Message}");
+                return false;
             }
         }
         #endregion
@@ -243,10 +259,19 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentPlcImp
         /// <returns></returns>
         public bool WriteBool(string db, string offset, bool value)
         {
-            lock (plclock)
+
+            try
             {
-                int returnvalue = value ? 1 : 0;
-                return WriteInt(db, offset, returnvalue);
+                lock (plclock)
+                {
+                    int returnvalue = value ? 1 : 0;
+                    return WriteInt(db, offset, returnvalue);
+                }
+            }
+            catch (Exception ex)
+            {
+                SAA_Database.LogMessage($"{ex.StackTrace}-{ex.Message}");
+                return false;
             }
         }
         #endregion
@@ -261,12 +286,20 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentPlcImp
         /// <returns></returns>
         public bool WriteStringArray(string db, string offset, string value)
         {
-            lock (plclock)
+            try
             {
-                int[] test = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-                WriteIntArray(db, offset, test);
-                List<int> readint = ReadStringToInt(value);
-                return WriteIntArray(db, offset, readint.ToArray());
+                lock (plclock)
+                {
+                    int[] test = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+                    WriteIntArray(db, offset, test);
+                    List<int> readint = ReadStringToInt(value);
+                    return WriteIntArray(db, offset, readint.ToArray());
+                }
+            }
+            catch (Exception ex)
+            {
+                SAA_Database.LogMessage($"{ex.StackTrace}-{ex.Message}");
+                return false;
             }
         }
         #endregion

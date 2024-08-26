@@ -84,47 +84,59 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                 {
                     while (true)
                     {
-                        DateTime datetime = DateTime.Now;
-                        int[] date = new int[6];
-                        date[0] = short.Parse(datetime.Year.ToString());
-                        date[1] = short.Parse(datetime.Month.ToString());
-                        date[2] = short.Parse(datetime.Day.ToString());
-                        date[3] = short.Parse(datetime.Hour.ToString());
-                        date[4] = short.Parse(datetime.Minute.ToString());
-                        date[5] = short.Parse(datetime.Second.ToString());
-                        SaaEquipmentPlc?.WriteIntArray(SAA_Database.saaequipmentoffset.SaaDB_DateTime, SAA_Database.saaequipmentoffset.SaaValue_DateTime, date);
-                        heartbit = heartbit == 0 ? 1 : 0;
-                        SaaEquipmentPlc?.WriteInt(SAA_Database.saaequipmentoffset.SaaDB_HeartBit, SAA_Database.saaequipmentoffset.SaaValue_HeartBit, heartbit);
-                        SaaDeviceStatus = SaaEquipmentPlc!.ReadInt(SAA_Database.saaequipmentbitoffset.SaaDB_DeviceStatus, SAA_Database.saaequipmentbitoffset.SaaValue_DeviceStatus);
-                        if (SaaDeviceStatus != DeviceStatus)
-                        {
-                            SaaScDevice ScDevice = new SaaScDevice
-                            {
-                                SETNO = int.Parse(SaaEquipmentPlcOffset.SETNO),
-                                MODEL_NAME = SaaEquipmentPlcOffset.MODEL_NAME,
-                                STATION_NAME = SaaEquipmentPlcOffset.STATION_NAME,
-                                DEVICESTATUS = SaaDeviceStatus == 1 || SaaDeviceStatus == 5 ? SAA_DatabaseEnum.DeviceStatus.Y.ToString() : SAA_DatabaseEnum.DeviceStatus.N.ToString(),
-                            };
-                            SAA_Database.SaaSql?.UpdScDeviceModeStatus(ScDevice);
-                            SAA_Database.LogMessage($"【{ScDevice.STATION_NAME}】【設備狀態變更】設備狀態為:{SaaDeviceStatus}，狀態更新為:{ScDevice.DEVICESTATUS}(Y:自動，N:手動)");
-                            SaaLiftReceive saaLift = new SaaLiftReceive
-                            {
-                                Statiom_Name = ScDevice.STATION_NAME,
-                                CommandName = SAA_DatabaseEnum.SaaLiftCommandName.EquipmentStatus.ToString(),
-                            };
-                            Dictionary<string, object> dicstatusb = new Dictionary<string, object>
+                        SaaUpdDateTimeLifebitClock(SaaEquipmentPlcOffset);
+                        Thread.Sleep(1000);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                SAA_Database.LogMessage($"{ex.Message}-{ex.StackTrace}", SAA_DatabaseEnum.LogType.Error);
+            }
+        }
+
+        public void SaaUpdDateTimeLifebitClock(SaaEquipmentPlcOffsetAttributes SaaEquipmentPlcOffset)
+        {
+            try
+            {
+                DateTime datetime = DateTime.Now;
+                int[] date = new int[6];
+                date[0] = short.Parse(datetime.Year.ToString());
+                date[1] = short.Parse(datetime.Month.ToString());
+                date[2] = short.Parse(datetime.Day.ToString());
+                date[3] = short.Parse(datetime.Hour.ToString());
+                date[4] = short.Parse(datetime.Minute.ToString());
+                date[5] = short.Parse(datetime.Second.ToString());
+                SaaEquipmentPlc?.WriteIntArray(SAA_Database.saaequipmentoffset.SaaDB_DateTime, SAA_Database.saaequipmentoffset.SaaValue_DateTime, date);
+                heartbit = heartbit == 0 ? 1 : 0;
+                SaaEquipmentPlc?.WriteInt(SAA_Database.saaequipmentoffset.SaaDB_HeartBit, SAA_Database.saaequipmentoffset.SaaValue_HeartBit, heartbit);
+                SaaDeviceStatus = SaaEquipmentPlc!.ReadInt(SAA_Database.saaequipmentbitoffset.SaaDB_DeviceStatus, SAA_Database.saaequipmentbitoffset.SaaValue_DeviceStatus);
+                if (SaaDeviceStatus != DeviceStatus)
+                {
+                    SaaScDevice ScDevice = new SaaScDevice
+                    {
+                        SETNO = int.Parse(SaaEquipmentPlcOffset.SETNO),
+                        MODEL_NAME = SaaEquipmentPlcOffset.MODEL_NAME,
+                        STATION_NAME = SaaEquipmentPlcOffset.STATION_NAME,
+                        DEVICESTATUS = SaaDeviceStatus == 1 || SaaDeviceStatus == 5 ? SAA_DatabaseEnum.DeviceStatus.Y.ToString() : SAA_DatabaseEnum.DeviceStatus.N.ToString(),
+                    };
+                    SAA_Database.SaaSql?.UpdScDeviceModeStatus(ScDevice);
+                    SAA_Database.LogMessage($"【{ScDevice.STATION_NAME}】【設備狀態變更】設備狀態為:{SaaDeviceStatus}，狀態更新為:{ScDevice.DEVICESTATUS}(Y:自動，N:手動)");
+                    SaaLiftReceive saaLift = new SaaLiftReceive
+                    {
+                        Statiom_Name = ScDevice.STATION_NAME,
+                        CommandName = SAA_DatabaseEnum.SaaLiftCommandName.EquipmentStatus.ToString(),
+                    };
+                    Dictionary<string, object> dicstatusb = new Dictionary<string, object>
                            {
                                { SAA_DatabaseEnum.EquipmentStatusCommand.Statiom_Name.ToString(),  saaLift.Statiom_Name},
                                { SAA_DatabaseEnum.EquipmentStatusCommand.CommandName.ToString(), saaLift.CommandName}
                            };
-                            string commandcontent = JsonConvert.SerializeObject(saaLift);
-                            string ReportMessage = SAA_Database.SaaSendCommandSystems(commandcontent, SAA_DatabaseEnum.SendWebApiCommandName.GetLiftMessage.ToString());
-                            SAA_Database.LogMessage($"【傳送設備】【{saaLift.Statiom_Name}】【EQ-LCS至轉譯程式】接收結果:{ReportMessage}");
-                            DeviceStatus = SaaDeviceStatus;
-                        }
-                        Thread.Sleep(2000);
-                    }
-                });
+                    string commandcontent = JsonConvert.SerializeObject(saaLift);
+                    string ReportMessage = SAA_Database.SaaSendCommandSystems(commandcontent, SAA_DatabaseEnum.SendWebApiCommandName.GetLiftMessage.ToString());
+                    SAA_Database.LogMessage($"【{saaLift.Statiom_Name}】【傳送設備】【EQ-LCS至轉譯程式】接收結果:{ReportMessage}");
+                    DeviceStatus = SaaDeviceStatus;
+                }
             }
             catch (Exception ex)
             {
@@ -472,10 +484,23 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                 {
                     while (true)
                     {
-                        EquipmentOffset.PlcRequest = SaaEquipmentPlc?.ReadIntArray(SAA_Database.saaequipmentbitoffset.SaaDB_Track, SAA_Database.saaequipmentbitoffset.SaaValue_Track, 7)!;
+                        //EquipmentOffset.PlcRequest = SaaEquipmentPlc?.ReadIntArray(SAA_Database.saaequipmentbitoffset.SaaDB_Track, SAA_Database.saaequipmentbitoffset.SaaValue_Track, 7)!;
+                        PlcActionOffset();
                         Thread.Sleep(100);
                     }
                 });
+            }
+            catch (Exception ex)
+            {
+                SAA_Database.LogMessage($"{ex.Message}-{ex.StackTrace}", SAA_DatabaseEnum.LogType.Error);
+            }
+        }
+
+        public void PlcActionOffset()
+        {
+            try
+            {
+                EquipmentOffset.PlcRequest = SaaEquipmentPlc?.ReadIntArray(SAA_Database.saaequipmentbitoffset.SaaDB_Track, SAA_Database.saaequipmentbitoffset.SaaValue_Track, 7)!;
             }
             catch (Exception ex)
             {
@@ -1051,8 +1076,8 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     SAA_Database.LogMessage($"【{station_naem}】刪除LiftCarrierInfoMaterial資料，卡匣ID:{LiftCarrierInfo.CARRIERID}");
                                     SAA_Database.SaaSql?.DelScLiftCarrierInfoReject(LiftCarrierInfo.SETNO, LiftCarrierInfo.MODEL_NAME, LiftCarrierInfo.STATION_NAME, LiftCarrierInfo.CARRIERID);
                                     SAA_Database.LogMessage($"【{station_naem}】刪除LiftCarrierInfoReject資料，卡匣ID:{LiftCarrierInfo.CARRIERID}");
-                                    SAA_Database.SaaSql?.DelScEquipmentCarrierInfo(LiftCarrierInfo.STATION_NAME, LiftCarrierInfo.CARRIERID);
-                                    SAA_Database.LogMessage($"【{station_naem}】刪除ScEquipmentCarrierInfo資料，卡匣ID:{LiftCarrierInfo.CARRIERID}");
+                                    //SAA_Database.SaaSql?.DelScEquipmentCarrierInfo(LiftCarrierInfo.STATION_NAME, LiftCarrierInfo.CARRIERID);
+                                    //SAA_Database.LogMessage($"【{station_naem}】刪除ScEquipmentCarrierInfo資料，卡匣ID:{LiftCarrierInfo.CARRIERID}");
                                     SAA_Database.SaaSql?.DelScCommandTask(LiftCarrierInfo.STATION_NAME, LiftCarrierInfo.CARRIERID);
                                     SAA_Database.LogMessage($"【{station_naem}】刪除SC_COMMAND_TASK資料，卡匣ID:{LiftCarrierInfo.CARRIERID}");
                                 }
@@ -1238,7 +1263,8 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     REPORE_DATAREMOTE = SaaEquipmentgroup.DataRemote,
                                     REPORE_DATALOCAL = SaaEquipmentgroup.DataLocal,
                                 };
-                                SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
+                                if (SaaEquipmentgroup.DataLocal != "PGV-OUT")
+                                    SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
                             }
                             else
                             {
@@ -1256,7 +1282,8 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                         REPORE_DATAREMOTE = SaaEquipmentgroup.DataRemote,
                                         REPORE_DATALOCAL = SaaEquipmentgroup.DataLocal,
                                     };
-                                    SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
+                                    if (SaaEquipmentgroup.DataLocal != "PGV-OUT")
+                                        SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
                                 }
                                 else
                                 {
@@ -1468,6 +1495,11 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                                     break;
                                                 }
                                             }
+
+                                            if (waitTime.TotalSeconds > 30)
+                                            {
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -1504,6 +1536,15 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                                     break;
                                                 }
                                             }
+
+                                            if (waitTime.TotalSeconds > 30)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            break;
                                         }
                                     }
                                 }
@@ -1578,6 +1619,64 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 }
                             }
                         }
+
+                        // B450 交握開始
+                        //SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】開始讀取 JumpDie 點位");
+                        int[] EquipmentJumpDie = SaaEquipmentPlc?.ReadIntArray("B", "450", 2)!;
+                        if (EquipmentJumpDie[0] == 1)
+                        {
+                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B450】JumpDie 開始點位為 {EquipmentJumpDie[0]}");
+                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B450】點位為 true，執行 JumpDie 動作");
+                            SaaEquipmentPlc?.WriteBool("B", "50", true);
+                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B50】 點位寫入 true");
+                            while (true)
+                            {
+                                EquipmentJumpDie = SaaEquipmentPlc?.ReadIntArray("B", "450", 2)!;
+                                if (EquipmentJumpDie[0] == 0)
+                                {
+                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B450】JumpDie 開始點位變更為 {EquipmentJumpDie[0]}");
+                                    SaaEquipmentPlc?.WriteBool("B", "50", false);
+                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B50】 點位寫入 false");
+                                    break;
+                                }
+                                Thread.Sleep(100);
+                            }
+
+                            var LocationSetting = SAA_Database.SaaSql?.GetScLocationSetting(int.Parse(EquipmentPlcOffset.SETNO), EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME, "CRANE")!;
+                            SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
+                            {
+                                TASKDATETIME = SAA_Database.ReadTime(),
+                                SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
+                                CARRIERID = !string.IsNullOrEmpty(LocationSetting?.Rows[0]["CARRIERID"].ToString()) ? LocationSetting?.Rows[0]["CARRIERID"].ToString()! : string.Empty,
+                                REPORE_DATATRACK = "305",
+                            };
+                            SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
+                            SAA_Database.LogMessage($"【{EquipmentReport.STATION_NAEM}】Insert into SC_EQUIPMENT_REPORT 資料，內容 : STATION_NAEM - {EquipmentReport.STATION_NAEM}，CARRIERID - {EquipmentReport.CARRIERID}，REPORE_DATATRACK - {EquipmentReport.REPORE_DATATRACK}");
+                        }
+
+                        // B451 交握結束
+                        if (EquipmentJumpDie[1] == 1)
+                        {
+                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B450】JumpDie 結束點位為 {EquipmentJumpDie[1]}");
+                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B451】點位為 true，結束 JumpDie 動作");
+
+                            SaaEquipmentPlc?.WriteBool("B", "51", true);
+                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B51】 點位寫入 true");
+                            while (true)
+                            {
+                                EquipmentJumpDie = SaaEquipmentPlc?.ReadIntArray("B", "450", 2)!;
+                                Thread.Sleep(100);
+                                if (EquipmentJumpDie[1] == 0)
+                                {
+                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B451】JumpDie 結束點位變更為 {EquipmentJumpDie[1]}");
+                                    SaaEquipmentPlc?.WriteBool("B", "51", false);
+                                    SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】【B51】 點位寫入 false");
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1614,130 +1713,148 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                 int[] EquipmentSiteOffset = SaaEquipmentPlc?.ReadIntArray("B", "6C0", 32)!;
                 if (EquipmentSiteOffset != null)
                 {
-                    //進製程
-                    if (EquipmentSiteOffset?[19] == 1)
+                    if (EquipmentSiteOffset.Length > 20)
                     {
-                        if (plceqpoffset != EquipmentSiteOffset?[19])
+                        //進製程
+                        if (EquipmentSiteOffset?[19] == 1)
                         {
-                            if (EquipmentSiteOffset?[19] != null)
-                                plceqpoffset = EquipmentSiteOffset[19]!;
-                        }
-                        var sitdata = SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.STATION_NAME);
-                        if (sitdata != null)
-                        {
-                            if (sitdata.Rows.Count == 0)
+                            if (plceqpoffset != EquipmentSiteOffset?[19])
                             {
-                                var devicedata = SAA_Database.SaaSql?.GetScDevice(int.Parse(EquipmentPlcOffset.SETNO), EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
-                                if (devicedata != null)
+                                if (EquipmentSiteOffset?[19] != null)
+                                    plceqpoffset = EquipmentSiteOffset[19]!;
+                            }
+                            var sitdata = SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.STATION_NAME);
+                            if (sitdata != null)
+                            {
+                                if (sitdata.Rows.Count == 0)
                                 {
-                                    if (devicedata?.Rows.Count != 0)
+                                    var devicedata = SAA_Database.SaaSql?.GetScDevice(int.Parse(EquipmentPlcOffset.SETNO), EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
+                                    if (devicedata != null)
                                     {
-                                        string devicetype = devicedata?.Rows[0]["DEVICETYPE"].ToString()!;
-                                        if (devicetype == "2")//1:LD 2:ULD
+                                        if (devicedata?.Rows.Count != 0)
                                         {
-                                            //ULD製程機要空盒卡匣
-                                            var ScCommandTask = SAA_Database.SaaSql?.GetScCommandTaskResult(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
-                                            if (ScCommandTask?.Rows.Count == 0)
+                                            string devicetype = devicedata?.Rows[0]["DEVICETYPE"].ToString()!;
+                                            if (devicetype == "2")//1:LD 2:ULD
                                             {
-                                                var liftcarrierinfoempty = SAA_Database.SaaSql?.GetScLiftCarrierInfoEmpty(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
-                                                if (liftcarrierinfoempty?.Rows.Count != 0)
+                                                //ULD製程機要空盒卡匣
+                                                var ScCommandTask = SAA_Database.SaaSql?.GetScCommandTaskResult(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
+                                                if (ScCommandTask?.Rows.Count == 0)
                                                 {
-                                                    SaaScLocationSetting SaaSettingCarrierId = new SaaScLocationSetting
+                                                    var liftcarrierinfoempty = SAA_Database.SaaSql?.GetScLiftCarrierInfoEmpty(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
+                                                    if (liftcarrierinfoempty != null)
                                                     {
-                                                        SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                                        MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                                        STATIOM_NAME = EquipmentPlcOffset.STATION_NAME,
-                                                        CARRIERID = liftcarrierinfoempty?.Rows[0]["CARRIERID"].ToString()!,
-                                                    };
-                                                    var settingcarrieriddata = SAA_Database.SaaSql?.GetScLocationSettingCarrierId(SaaSettingCarrierId);
-                                                    if (settingcarrieriddata != null)
-                                                    {
-                                                        if (settingcarrieriddata.Rows.Count != 0)
+                                                        if (liftcarrierinfoempty?.Rows.Count != 0)
                                                         {
-                                                            SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
+                                                            foreach (DataRow dr in liftcarrierinfoempty!.Rows)
                                                             {
-                                                                TASKDATETIME = SAA_Database.ReadTime(),
-                                                                SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                                                MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                                                STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
-                                                                CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
-                                                                REPORE_DATATRACK = "105",
-                                                                REPORE_DATAREMOTE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
-                                                                REPORE_DATALOCAL = "DK-IN",
-                                                            };
-                                                            SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
+                                                                SaaScLocationSetting SaaSettingCarrierId = new SaaScLocationSetting
+                                                                {
+                                                                    SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                                    MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                                    STATIOM_NAME = EquipmentPlcOffset.STATION_NAME,
+                                                                    CARRIERID = dr["CARRIERID"].ToString()!,
+                                                                };
+                                                                var settingcarrieriddata = SAA_Database.SaaSql?.GetScLocationSettingCarrierId(SaaSettingCarrierId);
+                                                                if (settingcarrieriddata != null)
+                                                                {
+                                                                    if (settingcarrieriddata.Rows.Count != 0)
+                                                                    {
+                                                                        SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
+                                                                        {
+                                                                            TASKDATETIME = SAA_Database.ReadTime(),
+                                                                            SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                                            MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                                            STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
+                                                                            CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
+                                                                            REPORE_DATATRACK = "105",
+                                                                            REPORE_DATAREMOTE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
+                                                                            REPORE_DATALOCAL = "DK-IN",
+                                                                        };
+                                                                        SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
 
 
-                                                            SaaScCommandTask CommandTask = new SaaScCommandTask
-                                                            {
-                                                                TASKDATETIME = SAA_Database.ReadTime(),
-                                                                SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                                                MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                                                STATION_NAME = EquipmentPlcOffset.STATION_NAME,
-                                                                CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
-                                                                COMMANDID = $"{DateTime.Now:fff}",
-                                                                LOCATIONPUT = "DK-IN",
-                                                                LOCATIONTAKE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
-                                                            };
-                                                            SAA_Database.SaaSql?.SetScCommandTask(CommandTask);
+                                                                        SaaScCommandTask CommandTask = new SaaScCommandTask
+                                                                        {
+                                                                            TASKDATETIME = SAA_Database.ReadTime(),
+                                                                            SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                                            MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                                            STATION_NAME = EquipmentPlcOffset.STATION_NAME,
+                                                                            CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
+                                                                            COMMANDID = $"{DateTime.Now:fff}",
+                                                                            LOCATIONPUT = "DK-IN",
+                                                                            LOCATIONTAKE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
+                                                                        };
+                                                                        if (SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.STATION_NAME).Rows.Count == 0)
+                                                                            SAA_Database.SaaSql?.SetScCommandTask(CommandTask);
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-                                        else
-                                        {
-                                            //LD製程機要實盒卡匣
-                                            var ScCommandTask = SAA_Database.SaaSql?.GetScCommandTaskResult(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
-                                            if (ScCommandTask?.Rows.Count == 0)
+                                            else
                                             {
-                                                var liftcarrierinfoempty = SAA_Database.SaaSql?.GetScLiftCarrierInfoMaterial(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
-                                                if (liftcarrierinfoempty?.Rows.Count != 0)
+                                                //LD製程機要實盒卡匣
+                                                var ScCommandTask = SAA_Database.SaaSql?.GetScCommandTaskResult(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
+                                                if (ScCommandTask?.Rows.Count == 0)
                                                 {
-                                                    SaaScLocationSetting SaaSettingCarrierId = new SaaScLocationSetting
+                                                    var liftcarrierinfoempty = SAA_Database.SaaSql?.GetScLiftCarrierInfoMaterial(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
+                                                    if (liftcarrierinfoempty?.Rows.Count != 0)
                                                     {
-                                                        SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                                        MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                                        STATIOM_NAME = EquipmentPlcOffset.STATION_NAME,
-                                                        CARRIERID = liftcarrierinfoempty?.Rows[0]["CARRIERID"].ToString()!,
-                                                    };
-                                                    var settingcarrieriddata = SAA_Database.SaaSql?.GetScLocationSettingCarrierId(SaaSettingCarrierId);
-                                                    if (settingcarrieriddata?.Rows.Count != 0)
-                                                    {
-                                                        SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
+                                                        if (liftcarrierinfoempty != null)
                                                         {
-                                                            TASKDATETIME = SAA_Database.ReadTime(),
-                                                            SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                                            MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                                            STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
-                                                            CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
-                                                            REPORE_DATATRACK = "105",
-                                                            REPORE_DATAREMOTE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
-                                                            REPORE_DATALOCAL = "DK-IN",
-                                                        };
-                                                        SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
+                                                            foreach (DataRow dr in liftcarrierinfoempty.Rows)
+                                                            {
+                                                                SaaScLocationSetting SaaSettingCarrierId = new SaaScLocationSetting
+                                                                {
+                                                                    SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                                    MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                                    STATIOM_NAME = EquipmentPlcOffset.STATION_NAME,
+                                                                    CARRIERID = dr["CARRIERID"].ToString()!,
+                                                                };
+                                                                var settingcarrieriddata = SAA_Database.SaaSql?.GetScLocationSettingCarrierId(SaaSettingCarrierId);
+                                                                if (settingcarrieriddata?.Rows.Count != 0)
+                                                                {
+                                                                    SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
+                                                                    {
+                                                                        TASKDATETIME = SAA_Database.ReadTime(),
+                                                                        SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                                        MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                                        STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
+                                                                        CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
+                                                                        REPORE_DATATRACK = "105",
+                                                                        REPORE_DATAREMOTE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
+                                                                        REPORE_DATALOCAL = "DK-IN",
+                                                                    };
+                                                                    SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
 
+                                                                    SaaScCommandTask CommandTask = new SaaScCommandTask
+                                                                    {
+                                                                        TASKDATETIME = SAA_Database.ReadTime(),
+                                                                        SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                                        MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                                        STATION_NAME = EquipmentPlcOffset.STATION_NAME,
+                                                                        CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
+                                                                        COMMANDID = $"{DateTime.Now:fff}",
+                                                                        LOCATIONPUT = "DK-IN",
+                                                                        LOCATIONTAKE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
 
-                                                        SaaScCommandTask CommandTask = new SaaScCommandTask
-                                                        {
-                                                            TASKDATETIME = SAA_Database.ReadTime(),
-                                                            SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                                            MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                                            STATION_NAME = EquipmentPlcOffset.STATION_NAME,
-                                                            CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
-                                                            COMMANDID = $"{DateTime.Now:fff}",
-                                                            LOCATIONPUT = "DK-IN",
-                                                            LOCATIONTAKE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
-
-                                                        };
-                                                        SAA_Database.SaaSql?.SetScCommandTask(CommandTask);
-                                                        SAA_Database.SaaSql?.SetScCommandTaskHistory(CommandTask);
+                                                                    };
+                                                                    if (SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.STATION_NAME).Rows.Count == 0)
+                                                                    {
+                                                                        SAA_Database.SaaSql?.SetScCommandTask(CommandTask);
+                                                                        SAA_Database.SaaSql?.SetScCommandTaskHistory(CommandTask);
+                                                                    }
+                                                                }
+                                                                //else
+                                                                //{
+                                                                //    SAA_Database.SaaSql?.DelScLiftCarrierInfoMaterial(SaaSettingCarrierId.SETNO, SaaSettingCarrierId.MODEL_NAME, SaaSettingCarrierId.STATIOM_NAME, SaaSettingCarrierId.CARRIERID);
+                                                                //    SAA_Database.LogMessage($"【{SaaSettingCarrierId.STATIOM_NAME}】LocationSetting資料表查無此卡匣ID:{SaaSettingCarrierId.CARRIERID}");
+                                                                //}
+                                                            }
+                                                        }
                                                     }
-                                                    //else
-                                                    //{
-                                                    //    SAA_Database.SaaSql?.DelScLiftCarrierInfoMaterial(SaaSettingCarrierId.SETNO, SaaSettingCarrierId.MODEL_NAME, SaaSettingCarrierId.STATIOM_NAME, SaaSettingCarrierId.CARRIERID);
-                                                    //    SAA_Database.LogMessage($"【{SaaSettingCarrierId.STATIOM_NAME}】LocationSetting資料表查無此卡匣ID:{SaaSettingCarrierId.CARRIERID}");
-                                                    //}
                                                 }
                                             }
                                         }
@@ -1745,67 +1862,69 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 }
                             }
                         }
-                    }
-                    //退REJECT
-                    if (EquipmentSiteOffset?[3] == 1)
-                    {
-                        var sitdata = SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.STATION_NAME);
-                        if (sitdata != null)
+                        //退REJECT
+                        if (EquipmentSiteOffset?[3] == 1)
                         {
-                            if (sitdata.Rows.Count == 0)
+                            var sitdata = SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.STATION_NAME);
+                            if (sitdata != null)
                             {
-                                var ScCommandTask = SAA_Database.SaaSql?.GetScCommandTaskResult(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME, "PGV-OUT");
-                                if (ScCommandTask?.Rows.Count == 0)
+                                if (sitdata.Rows.Count == 0)
                                 {
-                                    var liftcarrierinfojeject = SAA_Database.SaaSql?.GetScLiftCarrierInfoReject(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
-                                    if (liftcarrierinfojeject?.Rows.Count != 0)
+                                    var ScCommandTask = SAA_Database.SaaSql?.GetScCommandTaskResult(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME, "PGV-OUT");
+                                    if (ScCommandTask?.Rows.Count == 0)
                                     {
-                                        SaaScLocationSetting SaaSettingCarrierId = new SaaScLocationSetting
+                                        var liftcarrierinfojeject = SAA_Database.SaaSql?.GetScLiftCarrierInfoReject(EquipmentPlcOffset.SETNO, EquipmentPlcOffset.MODEL_NAME, EquipmentPlcOffset.STATION_NAME);
+                                        if (liftcarrierinfojeject?.Rows.Count != 0)
                                         {
-                                            SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                            MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                            STATIOM_NAME = liftcarrierinfojeject?.Rows[0]["STATION_NAME"].ToString()!,
-                                            CARRIERID = liftcarrierinfojeject?.Rows[0]["CARRIERID"].ToString()!,
-                                        };
-                                        var settingcarrieriddata = SAA_Database.SaaSql?.GetScLocationSettingCarrierId(SaaSettingCarrierId);
-                                        if (settingcarrieriddata != null)
-                                        {
-                                            if (settingcarrieriddata.Rows.Count != 0)
+                                            SaaScLocationSetting SaaSettingCarrierId = new SaaScLocationSetting
                                             {
-                                                SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
+                                                SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                STATIOM_NAME = liftcarrierinfojeject?.Rows[0]["STATION_NAME"].ToString()!,
+                                                CARRIERID = liftcarrierinfojeject?.Rows[0]["CARRIERID"].ToString()!,
+                                            };
+                                            var settingcarrieriddata = SAA_Database.SaaSql?.GetScLocationSettingCarrierId(SaaSettingCarrierId);
+                                            if (settingcarrieriddata != null)
+                                            {
+                                                if (settingcarrieriddata.Rows.Count != 0)
                                                 {
-                                                    TASKDATETIME = SAA_Database.ReadTime(),
-                                                    SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                                    MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                                    STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
-                                                    CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
-                                                    REPORE_DATATRACK = "405",
-                                                    REPORE_DATAREMOTE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
-                                                    REPORE_DATALOCAL = "PGV-OUT",
-                                                };
-                                                SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
+                                                    SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
+                                                    {
+                                                        TASKDATETIME = SAA_Database.ReadTime(),
+                                                        SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                        MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                        STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
+                                                        CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
+                                                        REPORE_DATATRACK = "405",
+                                                        REPORE_DATAREMOTE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
+                                                        REPORE_DATALOCAL = "PGV-OUT",
+                                                    };
+                                                    SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
 
+                                                    SaaScCommandTask CommandTask = new SaaScCommandTask
+                                                    {
+                                                        TASKDATETIME = SAA_Database.ReadTime(),
+                                                        SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                                        MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                                        STATION_NAME = EquipmentPlcOffset.STATION_NAME,
+                                                        CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
+                                                        COMMANDID = $"{DateTime.Now:fff}",
+                                                        LOCATIONPUT = "PGV-OUT",
+                                                        LOCATIONTAKE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
 
-                                                SaaScCommandTask CommandTask = new SaaScCommandTask
-                                                {
-                                                    TASKDATETIME = SAA_Database.ReadTime(),
-                                                    SETNO = int.Parse(EquipmentPlcOffset.SETNO),
-                                                    MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
-                                                    STATION_NAME = EquipmentPlcOffset.STATION_NAME,
-                                                    CARRIERID = settingcarrieriddata?.Rows[0]["CARRIERID"].ToString()!,
-                                                    COMMANDID = $"{DateTime.Now:fff}",
-                                                    LOCATIONPUT = "PGV-OUT",
-                                                    LOCATIONTAKE = settingcarrieriddata?.Rows[0]["LOCATIONID"].ToString()!,
-
-                                                };
-                                                SAA_Database.SaaSql?.SetScCommandTask(CommandTask);
-                                                SAA_Database.SaaSql?.SetScCommandTaskHistory(CommandTask);
+                                                    };
+                                                    if (SAA_Database.SaaSql?.GetScCommandTask(EquipmentPlcOffset.STATION_NAME).Rows.Count == 0)
+                                                    {
+                                                        SAA_Database.SaaSql?.SetScCommandTask(CommandTask);
+                                                        SAA_Database.SaaSql?.SetScCommandTaskHistory(CommandTask);
+                                                    }
+                                                }
+                                                //else
+                                                //{
+                                                //    SAA_Database.SaaSql?.DelScLiftCarrierInfoReject(SaaSettingCarrierId.SETNO, SaaSettingCarrierId.MODEL_NAME, SaaSettingCarrierId.STATIOM_NAME, SaaSettingCarrierId.CARRIERID);
+                                                //    SAA_Database.LogMessage($"【{SaaSettingCarrierId.STATIOM_NAME}】LocationSetting資料表查無此卡匣ID:{SaaSettingCarrierId.CARRIERID}");
+                                                //}
                                             }
-                                            //else
-                                            //{
-                                            //    SAA_Database.SaaSql?.DelScLiftCarrierInfoReject(SaaSettingCarrierId.SETNO, SaaSettingCarrierId.MODEL_NAME, SaaSettingCarrierId.STATIOM_NAME, SaaSettingCarrierId.CARRIERID);
-                                            //    SAA_Database.LogMessage($"【{SaaSettingCarrierId.STATIOM_NAME}】LocationSetting資料表查無此卡匣ID:{SaaSettingCarrierId.CARRIERID}");
-                                            //}
                                         }
                                     }
                                 }
@@ -2072,6 +2191,8 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
         {
             SaaEquipmentPlc?.WriteBool("B", "2C0", false);
             SaaEquipmentPlc?.WriteBool("B", "2D0", false);
+            SaaEquipmentPlc?.WriteBool("B", "51", false);
+            SaaEquipmentPlc?.WriteBool("B", "50", false);
             SAA_Database.SaaSql?.UpdScCommandTask();
             SAA_Database.LogMessage($"SC_SOMMANDTASK任務更新為Null");
         }
