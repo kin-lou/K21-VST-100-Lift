@@ -2136,7 +2136,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                 {
                     if (EquipmentOffset.PlcReject.Length >= 15)
                     {
-                        if (EquipmentOffset.PlcReject != EquipmentOffset.PcReject)
+                        if (!EquipmentOffset.PlcReject.SequenceEqual(EquipmentOffset.PcReject))
                         {
                             int autoreject = EquipmentOffset.PlcReject[1] || EquipmentOffset.PlcReject[0] ? 1 : 0;//1:PLC開啟強制退盒 0:PLC關閉強制退盒
                             SaaScDevice device = new SaaScDevice
