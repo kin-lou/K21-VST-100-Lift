@@ -6,9 +6,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <FileVersion>100.24.07.27</FileVersion>
-    <AssemblyVersion>100.24.07.27</AssemblyVersion>
+    <FileVersion>100.24.09.09</FileVersion>
+    <AssemblyVersion>100.24.09.09</AssemblyVersion>
+    <PackageIcon>SAALIFT.png</PackageIcon>
+    <ApplicationIcon>Images\saalift.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Images\saalift.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MaterialDesignThemes" Version="4.5.0" />
@@ -24,6 +30,13 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\Lib\Newtonsoft.Json.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Images\SAALIFT.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -19,6 +19,10 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentPlcAttributes
 
         public int[]? PcAlarmList { get; set; }=new int[21];
 
+        public bool[] PlcReject { get; set; } = new bool[16];
+
+        public bool[] PcReject { get; set; } = new bool[16];
+
         /// <summary>
         /// PLC 上報點位
         /// </summary>

@@ -392,6 +392,18 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
             }
         }
 
+        public void UpdScDeviceAutoReject(SaaScDevice scdevice)
+        {
+            while (true)
+            {
+                bool sqlreport = SaaSql.WriteSqlByAutoOpen("Update SC_DEVICE Set AUTOREJECT = '" + scdevice.AUTOREJECT + "' Where SETNO = '" + scdevice.SETNO + "' And STATION_NAME = '" + scdevice.STATION_NAME + "' And MODEL_NAME = '" + scdevice.MODEL_NAME + "'");
+                SAA_Database.LogMessage("Update SC_DEVICE Set AUTOREJECT = '" + scdevice.AUTOREJECT + "' Where SETNO = '" + scdevice.SETNO + "' And STATION_NAME = '" + scdevice.STATION_NAME + "' And MODEL_NAME = '" + scdevice.MODEL_NAME + "'");
+                if (sqlreport)
+                    break;
+                Thread.Sleep(500);
+            }
+        }
+
         public void UpdScCommandTask(SaaScCommandTask commandtask)
         {
             while (true)

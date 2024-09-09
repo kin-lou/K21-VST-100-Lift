@@ -52,5 +52,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.DataTableAttributes
         /// 是否傳送
         /// </summary>
         public string SENDFLAG { get; set; } = string.Empty;
+
+        public string REPORE_SEND { get; set; } = string.Empty;
     }
 }

@@ -1962,6 +1962,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                     while (true)
                     {
                         EquipmentAlarmStart(EquipmentPlcOffset);
+                        EquipmentPlcRejectStart(EquipmentPlcOffset);
                         Thread.Sleep(3000);
                     }
                 });
@@ -2115,7 +2116,39 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                            };
                             string commandcontent = JsonConvert.SerializeObject(saaLift);
                             string ReportMessage = SAA_Database.SaaSendCommandSystems(commandcontent, SAA_DatabaseEnum.SendWebApiCommandName.GetLiftMessage.ToString());
-                            SAA_Database.LogMessage($"【傳送設備】【{saaLift.Statiom_Name}】【EQ-LCS至轉譯程式】接收結果:{ReportMessage}");
+                            SAA_Database.LogMessage($"【{saaLift.Statiom_Name}】【傳送設備】【EQ-LCS至轉譯程式】接收結果:{ReportMessage}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SAA_Database.LogMessage($"{ex.Message}-{ex.StackTrace}", SAA_DatabaseEnum.LogType.Error);
+            }
+        }
+
+        public void EquipmentPlcRejectStart(SaaEquipmentPlcOffsetAttributes EquipmentPlcOffset)
+        {
+            try
+            {
+                EquipmentOffset.PlcReject = SaaEquipmentPlc?.ReadByteArray("W", "413", 16)!;
+                if (EquipmentOffset.PlcReject != null)
+                {
+                    if (EquipmentOffset.PlcReject.Length >= 15)
+                    {
+                        if (EquipmentOffset.PlcReject != EquipmentOffset.PcReject)
+                        {
+                            int autoreject = EquipmentOffset.PlcReject[1] || EquipmentOffset.PlcReject[0] ? 1 : 0;//1:PLC開啟強制退盒 0:PLC關閉強制退盒
+                            SaaScDevice device = new SaaScDevice
+                            {
+                                SETNO = int.Parse(EquipmentPlcOffset.SETNO),
+                                MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
+                                STATION_NAME = EquipmentPlcOffset.STATION_NAME,
+                                AUTOREJECT = autoreject,
+                            };
+                            SAA_Database.SaaSql?.UpdScDeviceAutoReject(device);
+                            SAA_Database.LogMessage($"【{EquipmentPlcOffset.STATION_NAME}】{EquipmentPlcOffset.STATION_NAME}機台強制退盒模式為:{device.AUTOREJECT} (1:PLC開啟強制退盒 0:PLC關閉強制退盒)");
+                            EquipmentOffset.PcReject = EquipmentOffset.PlcReject;
                         }
                     }
                 }

@@ -30,5 +30,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.DataTableAttributes
         public string CONNECTSTATUS { get; set; } = string.Empty;
 
         public string DEVICESTATUS { get; set; } = string.Empty;
+
+        public int AUTOREJECT { get; set; } = 0;
     }
 }
