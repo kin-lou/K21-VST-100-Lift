@@ -1685,7 +1685,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 MODEL_NAME = EquipmentPlcOffset.MODEL_NAME,
                                 STATION_NAEM = EquipmentPlcOffset.STATION_NAME,
                                 CARRIERID = !string.IsNullOrEmpty(LocationSetting?.Rows[0]["CARRIERID"].ToString()) ? LocationSetting?.Rows[0]["CARRIERID"].ToString()! : string.Empty,
-                                REPORE_DATATRACK = "305",
+                                REPORE_DATATRACK = "315",
                             };
                             SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
                             SAA_Database.LogMessage($"【{EquipmentReport.STATION_NAEM}】Insert into SC_EQUIPMENT_REPORT 資料，內容 : STATION_NAEM - {EquipmentReport.STATION_NAEM}，CARRIERID - {EquipmentReport.CARRIERID}，REPORE_DATATRACK - {EquipmentReport.REPORE_DATATRACK}");
