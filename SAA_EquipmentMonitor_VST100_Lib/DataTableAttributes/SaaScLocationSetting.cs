@@ -42,5 +42,15 @@ namespace SAA_EquipmentMonitor_VST100_Lib.DataTableAttributes
         public string LOCATIONPRIORITIZ { get; set; } = string.Empty;
 
         public string PUTTIME { get; set; } = string.Empty;
+
+        public string OPER { get; set; } = string.Empty;
+
+        public string USERFLAG { get; set; } = string.Empty;
+
+        public string CARRIERSTATE { get; set; } = string.Empty;
+
+        public string DESTINATIONTYPE { get; set; } = string.Empty;
+
+        public string CARRIERID1 { get; set; } = string.Empty;
     }
 }

@@ -474,5 +474,12 @@ namespace SAA_EquipmentMonitor_VST100_Lib
             REMOTE_REJECT_MSG,
             COMMENT,
         }
+
+        public enum LOCATIONTYPE
+        {
+            Shelf,
+
+            Shelf_Global,
+        }
     }
 }

@@ -329,7 +329,18 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
         {
             while (true)
             {
-                bool sqlreport = SaaSql.WriteSqlByAutoOpen($"Update SC_LOCATIONSETTING Set CARRIERID = '" + locationsetting.CARRIERID + "', PARTNO = '" + locationsetting.PARTNO + "', INVENTORYFULL = '" + locationsetting.INVENTORYFULL + "', PUTTIME = '" + locationsetting.PUTTIME + "' Where LOCATIONID = '" + locationsetting.LOCATIONID + "' And SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And STATIOM_NAME = '" + locationsetting.STATIOM_NAME + "'");
+                bool sqlreport = SaaSql.WriteSqlByAutoOpen($"Update SC_LOCATIONSETTING Set CARRIERID = '" + locationsetting.CARRIERID + "', PARTNO = '" + locationsetting.PARTNO + "', INVENTORYFULL = '" + locationsetting.INVENTORYFULL + "', PUTTIME = '" + locationsetting.PUTTIME + "', OPER = '" + locationsetting.OPER + "', CARRIERSTATE = '" + locationsetting.CARRIERSTATE + "', DESTINATIONTYPE = '" + locationsetting.DESTINATIONTYPE + "' Where LOCATIONID = '" + locationsetting.LOCATIONID + "' And SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And STATIOM_NAME = '" + locationsetting.STATIOM_NAME + "'");
+                if (sqlreport)
+                    break;
+                Thread.Sleep(500);
+            }
+        }
+
+        public void UpdScLocationSettingiLIS(SaaScLocationSetting locationsetting)
+        {
+            while (true)
+            {
+                bool sqlreport = SaaSql.WriteSqlByAutoOpen($"Update SC_LOCATIONSETTING_iLIS Set CARRIERID = '" + locationsetting.CARRIERID + "', PARTNO = '" + locationsetting.PARTNO + "', INVENTORYFULL = '" + locationsetting.INVENTORYFULL + "', PUTTIME = '" + locationsetting.PUTTIME + "', OPER = '" + locationsetting.OPER + "', CARRIERSTATE = '" + locationsetting.CARRIERSTATE + "', DESTINATIONTYPE = '" + locationsetting.DESTINATIONTYPE + "' Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And STATIOM_NAME = '" + locationsetting.STATIOM_NAME + "' And CARRIERID = '" + locationsetting.CARRIERID1 + "'");
                 if (sqlreport)
                     break;
                 Thread.Sleep(500);
@@ -905,6 +916,12 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
         public DataTable GetScRejectListPlc(string remoterejectcode)
         {
             return SaaSql.QuerySqlByAutoOpen("Select * From SC_REJECT_LIST_PLC Where  REMOTE_REJECT_CODE = '" + remoterejectcode + "'")!;
+        }
+
+        public DataTable GetScLocationSettingLocationType(string statiom_name, string locationtype)
+        {
+            //SAA_Database.LogMessage("Select * From SC_LOCATIONSETTING Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And CARRIERID = '" + locationsetting.CARRIERID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "' And LOCATIONTYPE = 'Shelf' ");
+            return SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING_iLIS Where STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + locationtype + "' And CARRIERID = ''")!;
         }
     }
 }

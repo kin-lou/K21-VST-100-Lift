@@ -955,24 +955,88 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
 
                         if (SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Move || SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Establish || SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Have)
                         {
-                            SaaScLocationSetting locationsetting = new SaaScLocationSetting
+                            var equipmentcarrierinfo = SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(station_naem, SaaEquipmentgroup.DataCarrierId);
+                            SaaScLocationSetting locationsettinglocal = new SaaScLocationSetting
                             {
                                 SETNO = setno,
                                 MODEL_NAME = model_name,
                                 STATIOM_NAME = station_naem,
                                 LOCATIONID = SaaEquipmentgroup.DataLocal,
                                 CARRIERID = SaaEquipmentgroup.DataCarrierId,
+                                PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
                                 INVENTORYFULL = 1,
                                 PUTTIME = SAA_Database.ReadTime(),
+                                OPER = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.OPER.ToString()].ToString()! : string.Empty,
+                                CARRIERSTATE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.CARRIERSTATE.ToString()].ToString()! : string.Empty,
+                                DESTINATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()! : string.Empty,
                             };
-                            SaaScLocationSetting locationsetting1 = new SaaScLocationSetting
+                            SaaScLocationSetting locationsettingremote = new SaaScLocationSetting
                             {
                                 SETNO = setno,
                                 MODEL_NAME = model_name,
                                 STATIOM_NAME = station_naem,
                                 LOCATIONID = SaaEquipmentgroup.DataRemote,
+                                CARRIERID = string.Empty,
+                                PARTNO = string.Empty,
                                 INVENTORYFULL = 0,
+                                PUTTIME = string.Empty,
+                                OPER = string.Empty,
+                                CARRIERSTATE = string.Empty,
+                                DESTINATIONTYPE = string.Empty,
+                                CARRIERID1 = SaaEquipmentgroup.DataCarrierId
                             };
+                            //更新設備儲格狀態
+                            SAA_Database.SaaSql?.UpdScLocationSetting(locationsettinglocal);
+                            SAA_Database.SaaSql?.UpdScLocationSetting(locationsettingremote);
+
+                            //更新iLIS儲格狀態
+                            var shelfglobaldata = SAA_Database.SaaSql?.GetScLocationSettingLocationType(station_naem, SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString());
+                            var shelfdata = SAA_Database.SaaSql?.GetScLocationSettingLocationType(station_naem, SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString());
+                            var devicedata = SAA_Database.SaaSql?.GetScDevice(setno, model_name, station_naem);
+                            if (shelfglobaldata != null && shelfdata != null && devicedata != null)
+                            {
+                                string deviceoper = devicedata.Rows.Count != 0 ? devicedata.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.OPER.ToString()].ToString()! : string.Empty;
+                                string carrierstate = equipmentcarrierinfo!.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.CARRIERSTATE.ToString()].ToString()! : string.Empty;
+                                string destinationtype = equipmentcarrierinfo!.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()! : string.Empty;
+
+                                if (deviceoper == locationsettinglocal.OPER && carrierstate == SAA_DatabaseEnum.CarrierState.Material.ToString() && destinationtype == SAA_DatabaseEnum.DestinationType.Buffer.ToString())
+                                {
+                                    SaaScLocationSetting locationsettinglocalilis = new SaaScLocationSetting
+                                    {
+                                        SETNO = setno,
+                                        MODEL_NAME = model_name,
+                                        STATIOM_NAME = station_naem,
+                                        LOCATIONID = shelfglobaldata.Rows.Count != 0 ? shelfglobaldata.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONID.ToString()].ToString()! : string.Empty,
+                                        CARRIERID = SaaEquipmentgroup.DataCarrierId,
+                                        PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
+                                        INVENTORYFULL = 1,
+                                        PUTTIME = SAA_Database.ReadTime(),
+                                        OPER = deviceoper,
+                                        CARRIERSTATE = carrierstate,
+                                    };
+                                    SAA_Database.SaaSql?.UpdScLocationSettingiLIS(locationsettinglocalilis);
+                                }
+                                else
+                                {
+                                    SaaScLocationSetting locationsettinglocalilis = new SaaScLocationSetting
+                                    {
+                                        SETNO = setno,
+                                        MODEL_NAME = model_name,
+                                        STATIOM_NAME = station_naem,
+                                        LOCATIONID = shelfdata.Rows.Count != 0 ? shelfdata.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONID.ToString()].ToString()! : string.Empty,
+                                        CARRIERID = SaaEquipmentgroup.DataCarrierId,
+                                        PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
+                                        INVENTORYFULL = 1,
+                                        PUTTIME = SAA_Database.ReadTime(),
+                                        OPER = deviceoper,
+                                        CARRIERSTATE = carrierstate,
+                                    };
+                                    SAA_Database.SaaSql?.UpdScLocationSettingiLIS(locationsettinglocalilis);
+                                }
+                            }
+
+                            SAA_Database.SaaSql?.UpdScLocationSettingiLIS(locationsettingremote);
+
                             SaaScLiftCarrierInfo LiftCarrierInfo = new SaaScLiftCarrierInfo
                             {
                                 SETNO = setno,
@@ -980,23 +1044,23 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 STATION_NAME = station_naem,
                                 CARRIERID = SaaEquipmentgroup.DataCarrierId,
                             };
+
                             var liftcarrierdata = SAA_Database.SaaSql?.GetLiftCarrierInfo(LiftCarrierInfo);
-                            if (SAA_Database.SaaSql?.GetScLocationSetting(locationsetting).Rows.Count != 0)
+                            if (SAA_Database.SaaSql?.GetScLocationSetting(locationsettinglocal).Rows.Count != 0)
                             {
-                                SAA_Database.SaaSql?.UpdScLocationSetting(locationsetting);
-                                SAA_Database.SaaSql?.UpdScLocationSetting(locationsetting1);
+
                                 if (liftcarrierdata!.Rows != null)
                                 {
                                     if (liftcarrierdata.Rows.Count != 0)
                                     {
-                                        locationsetting.LOCATIONMODE = liftcarrierdata.Rows[0]["CARRIERTYPE"].ToString()!;
-                                        SAA_Database.SaaSql?.UpdScLocationSettingMode(locationsetting);
+                                        locationsettinglocal.LOCATIONMODE = liftcarrierdata.Rows[0]["CARRIERTYPE"].ToString()!;
+                                        SAA_Database.SaaSql?.UpdScLocationSettingMode(locationsettinglocal);
                                     }
                                 }
                             }
                             else
                             {
-                                SAA_Database.SaaSql?.SetScLocationSetting(locationsetting);
+                                SAA_Database.SaaSql?.SetScLocationSetting(locationsettinglocal);
                             }
 
                             string pattern = "[^a-zA-Z0-9]";
