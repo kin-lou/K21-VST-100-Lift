@@ -1327,7 +1327,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     REPORE_DATAREMOTE = SaaEquipmentgroup.DataRemote,
                                     REPORE_DATALOCAL = SaaEquipmentgroup.DataLocal,
                                 };
-                                if (SaaEquipmentgroup.DataLocal != "PGV-OUT")
+                                if (SaaEquipmentgroup.DataLocal != "PGV-OUT" && SaaEquipmentgroup.DataLocal != "Stage-In")
                                     SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
                             }
                             else
@@ -1346,7 +1346,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                         REPORE_DATAREMOTE = SaaEquipmentgroup.DataRemote,
                                         REPORE_DATALOCAL = SaaEquipmentgroup.DataLocal,
                                     };
-                                    if (SaaEquipmentgroup.DataLocal != "PGV-OUT")
+                                    if (SaaEquipmentgroup.DataLocal != "PGV-OUT" && SaaEquipmentgroup.DataLocal != "Stage-In")
                                         SAA_Database.SaaSql?.SetEquipmentReport(EquipmentReport);
                                 }
                                 else
@@ -1405,6 +1405,18 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                             SAA_Database.LogMessage($"【{station_naem}】【監控答覆】【查無此資料】PLC 退盒編號:{writereply}，卡匣ID:{carrierid}");
                                         }
                                         replyresult = SAA_DatabaseEnum.SendFlag.Y.ToString();
+                                    }
+                                    else if (SaaEquipmentgroup.DataLocal == "Stage-In")
+                                    {
+                                        var equipmentcarrierinfo = SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(station_naem, SaaEquipmentgroup.DataCarrierId);
+                                        if (equipmentcarrierinfo != null)
+                                        {
+                                            if (equipmentcarrierinfo.Rows.Count != 0)
+                                            {
+                                                string destinationtype = equipmentcarrierinfo.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()!;
+                                                writereply = destinationtype == SAA_DatabaseEnum.DestinationType.EQP.ToString() ? 1 : destinationtype == SAA_DatabaseEnum.DestinationType.Buffer.ToString() ? 2 : 4;
+                                            }
+                                        }
                                     }
                                     else
                                     {
