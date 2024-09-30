@@ -1415,6 +1415,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                             {
                                                 string destinationtype = equipmentcarrierinfo.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()!;
                                                 writereply = destinationtype == SAA_DatabaseEnum.DestinationType.EQP.ToString() ? 1 : destinationtype == SAA_DatabaseEnum.DestinationType.Buffer.ToString() ? 2 : 4;
+                                                SAA_Database.LogMessage($"【{station_naem}】【監控資料】卡匣ID:{carrierid}，DESTINATIONTYPE:{destinationtype}，讀取狀態:{writereply}");
                                             }
                                         }
                                     }
