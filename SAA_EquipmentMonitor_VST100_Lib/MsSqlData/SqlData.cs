@@ -336,7 +336,51 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
             }
         }
 
+        public void UpdScLocationSettingLocationType(SaaScLocationSetting locationsetting)
+        {
+            while (true)
+            {
+                bool sqlreport = SaaSql.WriteSqlByAutoOpen($"Update SC_LOCATIONSETTING Set CARRIERID = '" + locationsetting.CARRIERID + "', PARTNO = '" + locationsetting.PARTNO + "', INVENTORYFULL = '" + locationsetting.INVENTORYFULL + "', PUTTIME = '" + locationsetting.PUTTIME + "', OPER = '" + locationsetting.OPER + "', CARRIERSTATE = '" + locationsetting.CARRIERSTATE + "', DESTINATIONTYPE = '" + locationsetting.DESTINATIONTYPE + "', LOCATIONTYPE = '" + locationsetting.LOCATIONTYPE + "' Where LOCATIONID = '" + locationsetting.LOCATIONID + "' And SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And STATIOM_NAME = '" + locationsetting.STATIOM_NAME + "'");
+                if (sqlreport)
+                    break;
+                Thread.Sleep(500);
+            }
+        }
+
         public void UpdScLocationSettingiLIS(SaaScLocationSetting locationsetting)
+        {
+            while (true)
+            {
+                bool sqlreport = SaaSql.WriteSqlByAutoOpen($"Update SC_LOCATIONSETTING_iLIS Set CARRIERID = '" + locationsetting.CARRIERID + "', PARTNO = '" + locationsetting.PARTNO + "', INVENTORYFULL = '" + locationsetting.INVENTORYFULL + "', PUTTIME = '" + locationsetting.PUTTIME + "', OPER = '" + locationsetting.OPER + "', CARRIERSTATE = '" + locationsetting.CARRIERSTATE + "', DESTINATIONTYPE = '" + locationsetting.DESTINATIONTYPE + "' Where LOCATIONID = '" + locationsetting.LOCATIONID + "' And SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And STATIOM_NAME = '" + locationsetting.STATIOM_NAME + "'");
+                if (sqlreport)
+                    break;
+                Thread.Sleep(500);
+            }
+        }
+
+        public void UpdScLocationSettingiLISLocationType(SaaScLocationSetting locationsetting)
+        {
+            while (true)
+            {
+                bool sqlreport = SaaSql.WriteSqlByAutoOpen($"Update SC_LOCATIONSETTING_iLIS Set CARRIERID = '" + locationsetting.CARRIERID + "', PARTNO = '" + locationsetting.PARTNO + "', INVENTORYFULL = '" + locationsetting.INVENTORYFULL + "', PUTTIME = '" + locationsetting.PUTTIME + "', OPER = '" + locationsetting.OPER + "', CARRIERSTATE = '" + locationsetting.CARRIERSTATE + "', DESTINATIONTYPE = '" + locationsetting.DESTINATIONTYPE + "', LOCATIONTYPE = '" + locationsetting.LOCATIONTYPE + "' Where LOCATIONID = '" + locationsetting.LOCATIONID + "' And SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And STATIOM_NAME = '" + locationsetting.STATIOM_NAME + "'");
+                if (sqlreport)
+                    break;
+                Thread.Sleep(500);
+            }
+        }
+
+        public void UpdScLocationSettingiLISClearLocationType(SaaScLocationSetting locationsetting)
+        {
+            while (true)
+            {
+                bool sqlreport = SaaSql.WriteSqlByAutoOpen($"Update SC_LOCATIONSETTING_iLIS Set CARRIERID = '" + locationsetting.CARRIERID + "', PARTNO = '" + locationsetting.PARTNO + "', INVENTORYFULL = '" + locationsetting.INVENTORYFULL + "', PUTTIME = '" + locationsetting.PUTTIME + "', OPER = '" + locationsetting.OPER + "', CARRIERSTATE = '" + locationsetting.CARRIERSTATE + "', DESTINATIONTYPE = '" + locationsetting.DESTINATIONTYPE + "' Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And STATIOM_NAME = '" + locationsetting.STATIOM_NAME + "' And CARRIERID = '" + locationsetting.CARRIERID1 + "'");
+                if (sqlreport)
+                    break;
+                Thread.Sleep(500);
+            }
+        }
+
+        public void UpdScLocationSettingiLISClear(SaaScLocationSetting locationsetting)
         {
             while (true)
             {
@@ -596,6 +640,18 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
             {
                 sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And LOCATIONID = '" + locationsetting.LOCATIONID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "'")!;
                 SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And LOCATIONID = '" + locationsetting.LOCATIONID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "'");
+                if (sqlreport != null) break;
+            }
+            return sqlreport;
+        }
+
+        public DataTable GetScLocationSettingiLIS(SaaScLocationSetting locationsetting)
+        {
+            DataTable sqlreport;
+            while (true)
+            {
+                sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING_iLIS Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And LOCATIONID = '" + locationsetting.LOCATIONID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "'")!;
+                SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING_iLIS Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And LOCATIONID = '" + locationsetting.LOCATIONID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "'");
                 if (sqlreport != null) break;
             }
             return sqlreport;
@@ -922,6 +978,12 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
         {
             //SAA_Database.LogMessage("Select * From SC_LOCATIONSETTING Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And CARRIERID = '" + locationsetting.CARRIERID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "' And LOCATIONTYPE = 'Shelf' ");
             return SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING_iLIS Where STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + locationtype + "' And CARRIERID = ''")!;
+        }
+
+        public DataTable GetScLocationSettingLocationTypeCell(string statiom_name, string locationtype)
+        {
+            //SAA_Database.LogMessage("Select * From SC_LOCATIONSETTING Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And CARRIERID = '" + locationsetting.CARRIERID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "' And LOCATIONTYPE = 'Shelf' ");
+            return SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING_iLIS Where STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + locationtype + "'")!;
         }
     }
 }

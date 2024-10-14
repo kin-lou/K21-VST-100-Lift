@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using SAA.Core.PLC.Models;
@@ -969,7 +970,9 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 OPER = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.OPER.ToString()].ToString()! : string.Empty,
                                 CARRIERSTATE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.CARRIERSTATE.ToString()].ToString()! : string.Empty,
                                 DESTINATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()! : string.Empty,
+                                LOCATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString() == SAA_DatabaseEnum.LOCATIONTYPE.Buffer_Global.ToString() ? SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString() : SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString() : string.Empty,
                             };
+
                             SaaScLocationSetting locationsettingremote = new SaaScLocationSetting
                             {
                                 SETNO = setno,
@@ -983,59 +986,146 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 OPER = string.Empty,
                                 CARRIERSTATE = string.Empty,
                                 DESTINATIONTYPE = string.Empty,
-                                CARRIERID1 = SaaEquipmentgroup.DataCarrierId
+                                CARRIERID1 = SaaEquipmentgroup.DataCarrierId,
+                                LOCATIONTYPE = SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()
                             };
                             //更新設備儲格狀態
-                            SAA_Database.SaaSql?.UpdScLocationSetting(locationsettinglocal);
-                            SAA_Database.SaaSql?.UpdScLocationSetting(locationsettingremote);
-
-                            //更新iLIS儲格狀態
-                            var shelfglobaldata = SAA_Database.SaaSql?.GetScLocationSettingLocationType(station_naem, SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString());
-                            var shelfdata = SAA_Database.SaaSql?.GetScLocationSettingLocationType(station_naem, SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString());
-                            var devicedata = SAA_Database.SaaSql?.GetScDevice(setno, model_name, station_naem);
-                            if (shelfglobaldata != null && shelfdata != null && devicedata != null)
+                            //建立帳料
+                            var locationsettinglocaldata = SAA_Database.SaaSql?.GetScLocationSetting(locationsettinglocal);
+                            if (locationsettinglocaldata != null)
                             {
-                                string deviceoper = devicedata.Rows.Count != 0 ? devicedata.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.OPER.ToString()].ToString()! : string.Empty;
-                                string carrierstate = equipmentcarrierinfo!.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.CARRIERSTATE.ToString()].ToString()! : string.Empty;
-                                string destinationtype = equipmentcarrierinfo!.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()! : string.Empty;
-
-                                if (deviceoper == locationsettinglocal.OPER && carrierstate == SAA_DatabaseEnum.CarrierState.Material.ToString() && destinationtype == SAA_DatabaseEnum.DestinationType.Buffer.ToString())
+                                if (locationsettinglocaldata.Rows.Count != 0)
                                 {
-                                    SaaScLocationSetting locationsettinglocalilis = new SaaScLocationSetting
+                                    string locationtype = locationsettinglocaldata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONTYPE.ToString()].ToString()!;
+                                    locationsettinglocal.HOSTID = locationsettinglocaldata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.HOSTID.ToString()].ToString()!;
+                                    if (locationtype.Contains(SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()))
                                     {
-                                        SETNO = setno,
-                                        MODEL_NAME = model_name,
-                                        STATIOM_NAME = station_naem,
-                                        LOCATIONID = shelfglobaldata.Rows.Count != 0 ? shelfglobaldata.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONID.ToString()].ToString()! : string.Empty,
-                                        CARRIERID = SaaEquipmentgroup.DataCarrierId,
-                                        PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
-                                        INVENTORYFULL = 1,
-                                        PUTTIME = SAA_Database.ReadTime(),
-                                        OPER = deviceoper,
-                                        CARRIERSTATE = carrierstate,
-                                    };
-                                    SAA_Database.SaaSql?.UpdScLocationSettingiLIS(locationsettinglocalilis);
-                                }
-                                else
-                                {
-                                    SaaScLocationSetting locationsettinglocalilis = new SaaScLocationSetting
+                                        SAA_Database.SaaSql?.UpdScLocationSettingLocationType(locationsettinglocal);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】更新儲格 儲格位置: {locationsettinglocal.LOCATIONID}，卡匣ID:{locationsettinglocal.CARRIERID}，HOSTID儲格名稱:{locationsettinglocal.HOSTID}，變更儲格屬性:{locationsettinglocal.LOCATIONTYPE}");
+                                    }
+                                    else
                                     {
-                                        SETNO = setno,
-                                        MODEL_NAME = model_name,
-                                        STATIOM_NAME = station_naem,
-                                        LOCATIONID = shelfdata.Rows.Count != 0 ? shelfdata.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONID.ToString()].ToString()! : string.Empty,
-                                        CARRIERID = SaaEquipmentgroup.DataCarrierId,
-                                        PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
-                                        INVENTORYFULL = 1,
-                                        PUTTIME = SAA_Database.ReadTime(),
-                                        OPER = deviceoper,
-                                        CARRIERSTATE = carrierstate,
-                                    };
-                                    SAA_Database.SaaSql?.UpdScLocationSettingiLIS(locationsettinglocalilis);
+                                        SAA_Database.SaaSql?.UpdScLocationSetting(locationsettinglocal);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】更新位置 機構位置: {locationsettinglocal.LOCATIONID}，卡匣ID:{locationsettinglocal.CARRIERID}，HOSTID位置名稱:{locationsettinglocal.HOSTID}");
+                                    }
                                 }
                             }
 
-                            SAA_Database.SaaSql?.UpdScLocationSettingiLIS(locationsettingremote);
+                            //清除帳料
+                            var locationsettingremotedata = SAA_Database.SaaSql?.GetScLocationSetting(locationsettingremote);
+                            if (locationsettingremotedata != null)
+                            {
+                                if (locationsettingremotedata.Rows.Count != 0)
+                                {
+                                    string locationtype = locationsettingremotedata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONTYPE.ToString()].ToString()!;
+                                    locationsettingremote.HOSTID = locationsettingremotedata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.HOSTID.ToString()].ToString()!;
+                                    if (locationtype.Contains(SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()))
+                                    {
+                                        SAA_Database.SaaSql?.UpdScLocationSettingLocationType(locationsettingremote);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】清除儲格 儲格位置: {locationsettingremote.LOCATIONID}，儲格屬性:{locationsettingremote.LOCATIONTYPE}，HOSTID位置名稱:{locationsettingremote.HOSTID}");
+                                    }
+                                    else
+                                    {
+                                        SAA_Database.SaaSql?.UpdScLocationSetting(locationsettingremote);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】清除位置資料 機構位置: {locationsettingremote.LOCATIONID}，屬性:{locationtype}，HOSTID位置名稱:{locationsettingremote.HOSTID}");
+                                    }
+                                }
+                            }
+
+                            #region [===更新iLIS儲格狀態(未用到)===]
+                            //var tmp = SAA_Database.SaaSql?.GetScLocationSetting(locationsettinglocal);
+                            //更新iLIS儲格狀態
+                            //var shelfglobaldata = SAA_Database.SaaSql?.GetScLocationSettingLocationType(station_naem, SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString());
+                            //var shelfdata = SAA_Database.SaaSql?.GetScLocationSettingLocationType(station_naem, SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString());
+                            //var devicedata = SAA_Database.SaaSql?.GetScDevice(setno, model_name, station_naem);
+                            //if (shelfglobaldata != null && shelfdata != null && devicedata != null && tmp?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONTYPE.ToString()].ToString() == SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString())
+                            //{
+                            //    string deviceoper = devicedata.Rows.Count != 0 ? devicedata.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.OPER.ToString()].ToString()! : string.Empty;
+                            //    string carrierstate = equipmentcarrierinfo!.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.CARRIERSTATE.ToString()].ToString()! : string.Empty;
+                            //    string destinationtype = equipmentcarrierinfo!.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()! : string.Empty;
+                            //    var locationilisdata = SAA_Database.SaaSql?.GetScLocationSettingiLIS(locationsettingremote);
+                            //    string shelfilis = locationilisdata!.Rows.Count != 0 ? locationilisdata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONTYPE.ToString()].ToString()! : string.Empty;
+                            //    if (shelfilis == SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString())
+                            //    {
+                            //        SAA_Database.SaaSql?.UpdScLocationSettingiLISClear(locationsettingremote);
+                            //        SAA_Database.LogMessage($"【{station_naem}】【更新資料】清除儲格 儲格位置: {locationsettingremote.LOCATIONID}，儲格屬性:{shelfilis}");
+                            //    }
+                            //    else
+                            //    {
+                            //        var locationtypecelldata = SAA_Database.SaaSql?.GetScLocationSettingLocationTypeCell(station_naem, SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString());
+                            //        if (locationtypecelldata?.Rows.Count > 4)
+                            //        {
+                            //            SAA_Database.SaaSql?.UpdScLocationSettingiLISClearLocationType(locationsettingremote);
+                            //            SAA_Database.LogMessage($"【{station_naem}】【更新資料】清除儲格 儲格位置: {locationsettingremote.LOCATIONID}，儲格屬性:{SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global}");
+                            //        }
+                            //        else
+                            //        {
+                            //            SAA_Database.SaaSql?.UpdScLocationSettingiLISClear(locationsettingremote);
+                            //            SAA_Database.LogMessage($"【{station_naem}】【更新資料】清除儲格 儲格位置: {locationsettingremote.LOCATIONID}，變更儲格屬性:{locationsettingremote.DESTINATIONTYPE}");
+                            //        }
+                            //    }
+
+                            //    if (destinationtype == SAA_DatabaseEnum.DestinationType.Shelf_Global.ToString())
+                            //    {
+                            //        if (shelfglobaldata.Rows.Count != 0)
+                            //        {
+                            //            SaaScLocationSetting locationsettinglocalilis = new SaaScLocationSetting
+                            //            {
+                            //                SETNO = setno,
+                            //                MODEL_NAME = model_name,
+                            //                STATIOM_NAME = station_naem,
+                            //                LOCATIONID = shelfglobaldata.Rows.Count != 0 ? shelfglobaldata.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONID.ToString()].ToString()! : string.Empty,
+                            //                CARRIERID = SaaEquipmentgroup.DataCarrierId,
+                            //                PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
+                            //                INVENTORYFULL = 1,
+                            //                HOSTID = shelfglobaldata.Rows.Count != 0 ? shelfglobaldata.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.HOSTID.ToString()].ToString()! : string.Empty,
+                            //                PUTTIME = SAA_Database.ReadTime(),
+                            //                OPER = deviceoper,
+                            //                CARRIERSTATE = carrierstate,
+                            //            };
+                            //            SAA_Database.SaaSql?.UpdScLocationSettingiLIS(locationsettinglocalilis);
+                            //            SAA_Database.LogMessage($"【{station_naem}】【更新資料】更新儲格 儲格位置: {locationsettingremote.LOCATIONID}，卡匣ID:{locationsettingremote.CARRIERID}，儲格名稱:{locationsettingremote.HOSTID}，儲格屬性:{SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global}");
+                            //        }
+                            //        else
+                            //        {
+                            //            SaaScLocationSetting locationsettinglocalilis = new SaaScLocationSetting
+                            //            {
+                            //                SETNO = setno,
+                            //                MODEL_NAME = model_name,
+                            //                STATIOM_NAME = station_naem,
+                            //                LOCATIONID = shelfdata.Rows.Count != 0 ? shelfdata.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONID.ToString()].ToString()! : string.Empty,
+                            //                CARRIERID = SaaEquipmentgroup.DataCarrierId,
+                            //                PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
+                            //                INVENTORYFULL = 1,
+                            //                PUTTIME = SAA_Database.ReadTime(),
+                            //                OPER = deviceoper,
+                            //                CARRIERSTATE = carrierstate,
+                            //                LOCATIONTYPE = SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString(),
+                            //            };
+                            //            SAA_Database.SaaSql?.UpdScLocationSettingiLISLocationType(locationsettinglocalilis);
+                            //            SAA_Database.LogMessage($"【{station_naem}】【更新資料】更新儲格 儲格位置: {locationsettingremote.LOCATIONID}，卡匣ID:{locationsettingremote.CARRIERID}，儲格名稱:{locationsettingremote.HOSTID}，變更儲格屬性:{SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global}");
+                            //        }
+                            //    }
+                            //    else
+                            //    {
+                            //        SaaScLocationSetting locationsettinglocalilis = new SaaScLocationSetting
+                            //        {
+                            //            SETNO = setno,
+                            //            MODEL_NAME = model_name,
+                            //            STATIOM_NAME = station_naem,
+                            //            LOCATIONID = shelfdata.Rows.Count != 0 ? shelfdata.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONID.ToString()].ToString()! : string.Empty,
+                            //            CARRIERID = SaaEquipmentgroup.DataCarrierId,
+                            //            PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
+                            //            INVENTORYFULL = 1,
+                            //            PUTTIME = SAA_Database.ReadTime(),
+                            //            OPER = deviceoper,
+                            //            CARRIERSTATE = carrierstate,
+                            //        };
+                            //        SAA_Database.SaaSql?.UpdScLocationSettingiLIS(locationsettinglocalilis);
+                            //        SAA_Database.LogMessage($"【{station_naem}】【更新資料】更新儲格 儲格位置: {locationsettingremote.LOCATIONID}，卡匣ID:{locationsettingremote.CARRIERID}，儲格名稱:{locationsettingremote.HOSTID}，屬性:{SAA_DatabaseEnum.LOCATIONTYPE.Shelf}");
+                            //    }
+                            //} 
+                            #endregion
 
                             SaaScLiftCarrierInfo LiftCarrierInfo = new SaaScLiftCarrierInfo
                             {
@@ -1106,6 +1196,29 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     }
                                     SAA_Database.SaaSql?.DelScCommandTask(station_naem, SaaEquipmentgroup.DataCarrierId);
                                     SAA_Database.LogMessage($"【{station_naem}】刪除SC_COMMAND_TASK資料，卡匣ID:{SaaEquipmentgroup.DataCarrierId}");
+                                }
+
+                                SaaScLocationSetting locationsettingremote = new SaaScLocationSetting
+                                {
+                                    SETNO = setno,
+                                    MODEL_NAME = model_name,
+                                    STATIOM_NAME = station_naem,
+                                    LOCATIONID = SaaEquipmentgroup.DataLocal,
+                                    CARRIERID = string.Empty,
+                                    PARTNO = string.Empty,
+                                    INVENTORYFULL = 0,
+                                    PUTTIME = string.Empty,
+                                    OPER = string.Empty,
+                                    CARRIERSTATE = string.Empty,
+                                    DESTINATIONTYPE = string.Empty,
+                                    LOCATIONTYPE = SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()
+                                };
+
+                                var locationilisdata = SAA_Database.SaaSql?.GetScLocationSetting(locationsettingremote);
+                                string shelfilis = locationilisdata!.Rows.Count != 0 ? locationilisdata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONTYPE.ToString()].ToString()! : string.Empty;
+                                if (shelfilis.Contains(SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()))
+                                {
+                                    SAA_Database.SaaSql?.UpdScLocationSettingLocationType(locationsettingremote);
                                 }
 
                                 SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport

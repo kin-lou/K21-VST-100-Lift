@@ -387,6 +387,11 @@ namespace SAA_EquipmentMonitor_VST100_Lib
             /// 退盒區
             /// </summary>
             Reject,
+
+            /// <summary>
+            /// 分散式儲格
+            /// </summary>
+            Shelf_Global,
         }
 
         public enum CarrierTyoe
@@ -480,6 +485,8 @@ namespace SAA_EquipmentMonitor_VST100_Lib
             Shelf,
 
             Shelf_Global,
+
+            Buffer_Global
         }
     }
 }
