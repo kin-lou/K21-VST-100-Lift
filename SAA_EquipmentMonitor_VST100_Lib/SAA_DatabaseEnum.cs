@@ -391,7 +391,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib
             /// <summary>
             /// 分散式儲格
             /// </summary>
-            Shelf_Global,
+            Buffer_Global,
         }
 
         public enum CarrierTyoe

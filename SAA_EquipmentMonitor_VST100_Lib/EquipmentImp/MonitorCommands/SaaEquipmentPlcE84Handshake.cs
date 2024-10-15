@@ -618,6 +618,85 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                         SAA_Database.LogMessage($"【{station_naem}】【監控上報】【第{No}組】取卡匣ID:{SaaEquipmentgroup.DataCarrierId}");
                         if (SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Move)
                         {
+                            var equipmentcarrierinfo = SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(station_naem, SaaEquipmentgroup.DataCarrierId);
+                            SaaScLocationSetting locationsettinglocal = new SaaScLocationSetting
+                            {
+                                SETNO = setno,
+                                MODEL_NAME = model_name,
+                                STATIOM_NAME = station_naem,
+                                LOCATIONID = SaaEquipmentgroup.DataLocal,
+                                CARRIERID = SaaEquipmentgroup.DataCarrierId,
+                                PARTNO = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.PARTNO.ToString()].ToString()! : string.Empty,
+                                INVENTORYFULL = 1,
+                                PUTTIME = SAA_Database.ReadTime(),
+                                OPER = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.OPER.ToString()].ToString()! : string.Empty,
+                                CARRIERSTATE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.CARRIERSTATE.ToString()].ToString()! : string.Empty,
+                                DESTINATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()! : string.Empty,
+                                LOCATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString() == SAA_DatabaseEnum.LOCATIONTYPE.Buffer_Global.ToString() ? SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString() : SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString() : string.Empty,
+                            };
+
+                            SaaScLocationSetting locationsettingremote = new SaaScLocationSetting
+                            {
+                                SETNO = setno,
+                                MODEL_NAME = model_name,
+                                STATIOM_NAME = station_naem,
+                                LOCATIONID = SaaEquipmentgroup.DataRemote,
+                                CARRIERID = string.Empty,
+                                PARTNO = string.Empty,
+                                INVENTORYFULL = 0,
+                                PUTTIME = string.Empty,
+                                OPER = string.Empty,
+                                CARRIERSTATE = string.Empty,
+                                DESTINATIONTYPE = string.Empty,
+                                CARRIERID1 = SaaEquipmentgroup.DataCarrierId,
+                                LOCATIONTYPE = SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()
+                            };
+                            #region [===建立帳料===]
+                            //建立帳料
+                            var locationsettinglocaldata = SAA_Database.SaaSql?.GetScLocationSetting(locationsettinglocal);
+                            if (locationsettinglocaldata != null)
+                            {
+                                if (locationsettinglocaldata.Rows.Count != 0)
+                                {
+                                    string locationtype = locationsettinglocaldata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONTYPE.ToString()].ToString()!;
+                                    locationsettinglocal.HOSTID = locationsettinglocaldata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.HOSTID.ToString()].ToString()!;
+                                    if (locationtype.Contains(SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()))
+                                    {
+                                        SAA_Database.SaaSql?.UpdScLocationSettingLocationType(locationsettinglocal);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】更新儲格 儲格位置: {locationsettinglocal.LOCATIONID}，卡匣ID:{locationsettinglocal.CARRIERID}，HOSTID儲格名稱:{locationsettinglocal.HOSTID}，變更儲格屬性:{locationsettinglocal.LOCATIONTYPE}");
+                                    }
+                                    else
+                                    {
+                                        SAA_Database.SaaSql?.UpdScLocationSetting(locationsettinglocal);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】更新位置 機構位置: {locationsettinglocal.LOCATIONID}，卡匣ID:{locationsettinglocal.CARRIERID}，HOSTID位置名稱:{locationsettinglocal.HOSTID}");
+                                    }
+                                }
+                            }
+                            #endregion
+
+                            #region [===清除帳料===]
+                            //清除帳料
+                            var locationsettingremotedata = SAA_Database.SaaSql?.GetScLocationSetting(locationsettingremote);
+                            if (locationsettingremotedata != null)
+                            {
+                                if (locationsettingremotedata.Rows.Count != 0)
+                                {
+                                    string locationtype = locationsettingremotedata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.LOCATIONTYPE.ToString()].ToString()!;
+                                    locationsettingremote.HOSTID = locationsettingremotedata?.Rows[0][SAA_DatabaseEnum.SC_LOCATIONSETTING.HOSTID.ToString()].ToString()!;
+                                    if (locationtype.Contains(SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()))
+                                    {
+                                        SAA_Database.SaaSql?.UpdScLocationSettingLocationType(locationsettingremote);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】清除儲格 儲格位置: {locationsettingremote.LOCATIONID}，儲格屬性:{locationsettingremote.LOCATIONTYPE}，HOSTID位置名稱:{locationsettingremote.HOSTID}");
+                                    }
+                                    else
+                                    {
+                                        SAA_Database.SaaSql?.UpdScLocationSetting(locationsettingremote);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】清除位置資料 機構位置: {locationsettingremote.LOCATIONID}，屬性:{locationtype}，HOSTID位置名稱:{locationsettingremote.HOSTID}");
+                                    }
+                                }
+                            } 
+                            #endregion
+
                             SaaScEquipmentReport EquipmentReport = new SaaScEquipmentReport
                             {
                                 TASKDATETIME = SAA_Database.ReadTime(),
@@ -659,7 +738,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                                 }
                                                 SAA_Database.SaaSql?.SetScLiftCarrierInfo(LiftCarrierInfo);
                                             }
-                                            SaaEquipmentCarrierInfo equipmentcarrierinfo = new SaaEquipmentCarrierInfo
+                                            SaaEquipmentCarrierInfo saaequipmentcarrierinfo = new SaaEquipmentCarrierInfo
                                             {
                                                 SETNO = setno,
                                                 MODEL_NAME = model_name,
@@ -675,13 +754,13 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                                 REJECT_CODE = string.Empty,
                                                 REJECT_MESSAGE = string.Empty,
                                             };
-                                            if (SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(equipmentcarrierinfo.STATIOM_NAME, equipmentcarrierinfo.CARRIERID).Rows.Count != 0)
+                                            if (SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(saaequipmentcarrierinfo.STATIOM_NAME, saaequipmentcarrierinfo.CARRIERID).Rows.Count != 0)
                                             {
-                                                SAA_Database.SaaSql?.DelScEquipmentCarrierInfo(equipmentcarrierinfo.STATIOM_NAME, equipmentcarrierinfo.CARRIERID);
-                                                SAA_Database.LogMessage($"【{station_naem}】已刪除卡匣資訊卡匣資訊卡匣ID:{equipmentcarrierinfo.CARRIERID}");
+                                                SAA_Database.SaaSql?.DelScEquipmentCarrierInfo(saaequipmentcarrierinfo.STATIOM_NAME, saaequipmentcarrierinfo.CARRIERID);
+                                                SAA_Database.LogMessage($"【{station_naem}】已刪除卡匣資訊卡匣資訊卡匣ID:{saaequipmentcarrierinfo.CARRIERID}");
                                             }
-                                            SAA_Database.SaaSql?.SetScEquipmentCarrierInfo(equipmentcarrierinfo);
-                                            SAA_Database.LogMessage($"【{station_naem}】新增卡匣資訊卡匣資訊卡匣ID:{equipmentcarrierinfo.CARRIERID}，卡匣屬性:{equipmentcarrierinfo.CARRIERSTATE}，卡匣目的位置:{equipmentcarrierinfo.DESTINATIONTYPE}");
+                                            SAA_Database.SaaSql?.SetScEquipmentCarrierInfo(saaequipmentcarrierinfo);
+                                            SAA_Database.LogMessage($"【{station_naem}】新增卡匣資訊卡匣資訊卡匣ID:{saaequipmentcarrierinfo.CARRIERID}，卡匣屬性:{saaequipmentcarrierinfo.CARRIERSTATE}，卡匣目的位置:{saaequipmentcarrierinfo.DESTINATIONTYPE}");
                                         }
                                         else
                                         {
@@ -954,7 +1033,8 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                             }
                         }
 
-                        if (SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Move || SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Establish || SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Have)
+                        #region [===建帳與有帳===]
+                        if (SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Establish || SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Have)
                         {
                             var equipmentcarrierinfo = SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(station_naem, SaaEquipmentgroup.DataCarrierId);
                             SaaScLocationSetting locationsettinglocal = new SaaScLocationSetting
@@ -989,7 +1069,8 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 CARRIERID1 = SaaEquipmentgroup.DataCarrierId,
                                 LOCATIONTYPE = SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString()
                             };
-                            //更新設備儲格狀態
+
+                            #region [===更新設備儲格狀態===]
                             //建立帳料
                             var locationsettinglocaldata = SAA_Database.SaaSql?.GetScLocationSetting(locationsettinglocal);
                             if (locationsettinglocaldata != null)
@@ -1031,6 +1112,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     }
                                 }
                             }
+                            #endregion
 
                             #region [===更新iLIS儲格狀態(未用到)===]
                             //var tmp = SAA_Database.SaaSql?.GetScLocationSetting(locationsettinglocal);
@@ -1173,7 +1255,8 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 SaaEquipmentPlc?.WriteInt(db, offset, 0);
                                 SAA_Database.LogMessage($"【{station_naem}】【手臂搬運】【{db}{offset}】【卡匣傳送至{SaaEquipmentgroup.DataLocal}】PC已傳送命令給PLC，{clean}訊號為 false");
                             }
-                        }
+                        } 
+                        #endregion
 
                         #region [===無帳或清除資料===]
                         if (SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.Clear || SaaEquipmentgroup.DataTrack == SAA_Database.EquipmentCommon.None)
@@ -1521,15 +1604,49 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     }
                                     else if (SaaEquipmentgroup.DataLocal == "Stage-In")
                                     {
-                                        var equipmentcarrierinfo = SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(station_naem, SaaEquipmentgroup.DataCarrierId);
-                                        if (equipmentcarrierinfo != null)
+                                        var device = SAA_Database.SaaSql?.GetScDevice(setno, model_name, station_naem);
+                                        string simulation = device?.Rows.Count != 0 ? device!.Rows[0]["SIMULATION"].ToString()! : SAA_DatabaseEnum.SendFlag.Y.ToString();
+                                        if (simulation == SAA_DatabaseEnum.SendFlag.Y.ToString())//Y:上報ASE N:模擬
                                         {
-                                            if (equipmentcarrierinfo.Rows.Count != 0)
+                                            var equipmentcarrierinfo = SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(station_naem, SaaEquipmentgroup.DataCarrierId);
+                                            if (equipmentcarrierinfo != null)
                                             {
-                                                string destinationtype = equipmentcarrierinfo.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()!;
-                                                writereply = destinationtype == SAA_DatabaseEnum.DestinationType.EQP.ToString() ? 1 : destinationtype == SAA_DatabaseEnum.DestinationType.Buffer.ToString() ? 2 : 4;
-                                                SAA_Database.LogMessage($"【{station_naem}】【監控資料】卡匣ID:{carrierid}，DESTINATIONTYPE:{destinationtype}，讀取狀態:{writereply}");
+                                                if (equipmentcarrierinfo.Rows.Count != 0)
+                                                {
+                                                    string destinationtype = equipmentcarrierinfo.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()!;
+                                                    writereply = destinationtype == SAA_DatabaseEnum.DestinationType.EQP.ToString() ? 1 : destinationtype.Contains(SAA_DatabaseEnum.DestinationType.Buffer.ToString()) ? 2 : 4;
+                                                    replyresult = destinationtype == SAA_DatabaseEnum.DestinationType.EQP.ToString() || destinationtype.Contains(SAA_DatabaseEnum.DestinationType.Buffer.ToString()) ? SAA_DatabaseEnum.SendFlag.Y.ToString() : SAA_DatabaseEnum.SendFlag.N.ToString();
+                                                    SAA_Database.LogMessage($"【{station_naem}】【監控資料】卡匣ID:{carrierid}，DESTINATIONTYPE:{destinationtype}，讀取狀態:{writereply}");
+                                                }
+                                                else
+                                                {
+                                                    writereply = 4;
+                                                    replyresult = SAA_DatabaseEnum.SendFlag.N.ToString();
+                                                    SAA_Database.LogMessage($"【{station_naem}】【監控資料】卡匣ID:{carrierid}，查無此卡匣資訊，讀取狀態:{writereply}");
+                                                }
                                             }
+                                        }
+                                        else
+                                        {
+                                            int simulationreplyresult = int.Parse(device!.Rows[0]["SIMULATION"].ToString()!);//要更新欄位
+                                            replyresult = simulationreplyresult == 1 || simulationreplyresult == 2 ? SAA_DatabaseEnum.SendFlag.Y.ToString() : SAA_DatabaseEnum.SendFlag.N.ToString();
+                                            writereply = int.Parse(device!.Rows[0]["SIMULATION"].ToString()!);//要更新欄位
+                                        }
+                                    }
+                                    else if (SaaEquipmentgroup.DataLocal == "Stage-Out")
+                                    {
+                                        var device = SAA_Database.SaaSql?.GetScDevice(setno, model_name, station_naem);
+                                        string simulation = device?.Rows.Count != 0 ? device!.Rows[0]["SIMULATION"].ToString()! : SAA_DatabaseEnum.SendFlag.Y.ToString();
+                                        if (simulation == SAA_DatabaseEnum.SendFlag.Y.ToString())//Y:上報ASE N:模擬
+                                        {
+                                            replyresult = data.Rows[0]["REPLYRESULT"].ToString()!;
+                                            writereply = replyresult == SAA_DatabaseEnum.SaaSendReply.Y.ToString() ? 1 : 4;
+                                        }
+                                        else
+                                        {
+                                            int simulationreplyresult = int.Parse(device!.Rows[0]["SIMULATION"].ToString()!);//要更新欄位
+                                            replyresult = simulationreplyresult == 1 || simulationreplyresult == 2 ? SAA_DatabaseEnum.SendFlag.Y.ToString() : SAA_DatabaseEnum.SendFlag.N.ToString();
+                                            writereply = int.Parse(device!.Rows[0]["SIMULATION"].ToString()!);//要更新欄位
                                         }
                                     }
                                     else
