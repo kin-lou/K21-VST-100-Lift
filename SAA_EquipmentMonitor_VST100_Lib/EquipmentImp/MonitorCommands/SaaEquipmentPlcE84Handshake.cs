@@ -632,7 +632,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 OPER = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.OPER.ToString()].ToString()! : string.Empty,
                                 CARRIERSTATE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.CARRIERSTATE.ToString()].ToString()! : string.Empty,
                                 DESTINATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()! : string.Empty,
-                                LOCATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString() == SAA_DatabaseEnum.LOCATIONTYPE.Buffer_Global.ToString() ? SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString() : SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString() : string.Empty,
+                                LOCATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString() == SAA_DatabaseEnum.LOCATIONTYPE.Buffer_Global.ToString() ? SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString() : SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString() : SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString(),
                             };
 
                             SaaScLocationSetting locationsettingremote = new SaaScLocationSetting
@@ -1571,6 +1571,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 string reply = purchasedata.Rows[0]["REPLY"].ToString()!;
                                 string local = purchasedata.Rows[0]["LOCAL"].ToString()!;
                                 var data = local == "PGV-OUT" ? SAA_Database.SaaSql?.GetPurchasePgvOut(carrierid) : SAA_Database.SaaSql?.GetPurchase(carrierid);
+                                SAA_Database.LogMessage($"【{station_naem}】【監控資料】詢問時的位置 :{local}");
                                 if (data!.Rows.Count != 0)
                                 {
                                     string replyresult = string.Empty;
@@ -1602,10 +1603,11 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                         }
                                         replyresult = SAA_DatabaseEnum.SendFlag.Y.ToString();
                                     }
-                                    else if (SaaEquipmentgroup.DataLocal == "Stage-In")
+                                    else if (local == "Stage-In")
                                     {
                                         var device = SAA_Database.SaaSql?.GetScDevice(setno, model_name, station_naem);
                                         string simulation = device?.Rows.Count != 0 ? device!.Rows[0]["SIMULATION"].ToString()! : SAA_DatabaseEnum.SendFlag.Y.ToString();
+                                        SAA_Database.LogMessage($"【{station_naem}】【監控資料】模擬回覆模式 SIMULATION :{simulation}");
                                         if (simulation == SAA_DatabaseEnum.SendFlag.Y.ToString())//Y:上報ASE N:模擬
                                         {
                                             var equipmentcarrierinfo = SAA_Database.SaaSql?.GetScEquipmentCarrierInfo(station_naem, SaaEquipmentgroup.DataCarrierId);
@@ -1628,15 +1630,17 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                         }
                                         else
                                         {
-                                            int simulationreplyresult = int.Parse(device!.Rows[0]["SIMULATION"].ToString()!);//要更新欄位
+                                            int simulationreplyresult = int.Parse(device!.Rows[0]["SIMULATION_REPLYRESULT"].ToString()!);//要更新欄位
                                             replyresult = simulationreplyresult == 1 || simulationreplyresult == 2 ? SAA_DatabaseEnum.SendFlag.Y.ToString() : SAA_DatabaseEnum.SendFlag.N.ToString();
-                                            writereply = int.Parse(device!.Rows[0]["SIMULATION"].ToString()!);//要更新欄位
+                                            writereply = int.Parse(device!.Rows[0]["SIMULATION_REPLYRESULT"].ToString()!);//要更新欄位
+                                            SAA_Database.LogMessage($"【{station_naem}】【監控資料】讀取 ReplyResult :{replyresult}，答覆資訊 :{writereply}");
                                         }
                                     }
-                                    else if (SaaEquipmentgroup.DataLocal == "Stage-Out")
+                                    else if (local == "Stage-Out")
                                     {
                                         var device = SAA_Database.SaaSql?.GetScDevice(setno, model_name, station_naem);
                                         string simulation = device?.Rows.Count != 0 ? device!.Rows[0]["SIMULATION"].ToString()! : SAA_DatabaseEnum.SendFlag.Y.ToString();
+                                        SAA_Database.LogMessage($"【{station_naem}】【監控資料】模擬回覆模式 SIMULATION :{simulation}");
                                         if (simulation == SAA_DatabaseEnum.SendFlag.Y.ToString())//Y:上報ASE N:模擬
                                         {
                                             replyresult = data.Rows[0]["REPLYRESULT"].ToString()!;
@@ -1644,9 +1648,10 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                         }
                                         else
                                         {
-                                            int simulationreplyresult = int.Parse(device!.Rows[0]["SIMULATION"].ToString()!);//要更新欄位
+                                            int simulationreplyresult = int.Parse(device!.Rows[0]["SIMULATION_REPLYRESULT"].ToString()!);//要更新欄位
                                             replyresult = simulationreplyresult == 1 || simulationreplyresult == 2 ? SAA_DatabaseEnum.SendFlag.Y.ToString() : SAA_DatabaseEnum.SendFlag.N.ToString();
-                                            writereply = int.Parse(device!.Rows[0]["SIMULATION"].ToString()!);//要更新欄位
+                                            writereply = int.Parse(device!.Rows[0]["SIMULATION_REPLYRESULT"].ToString()!);//要更新欄位
+                                            SAA_Database.LogMessage($"【{station_naem}】【監控資料】讀取 ReplyResult :{replyresult}，答覆資訊 :{writereply}");
                                         }
                                     }
                                     else

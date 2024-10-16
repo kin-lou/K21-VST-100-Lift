@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <FileVersion>100.24.10.15</FileVersion>
-    <AssemblyVersion>100.24.10.15</AssemblyVersion>
+    <FileVersion>100.24.10.16</FileVersion>
+    <AssemblyVersion>100.24.10.16</AssemblyVersion>
     <PackageIcon>SAALIFT.png</PackageIcon>
     <ApplicationIcon>Images\saalift.ico</ApplicationIcon>
   </PropertyGroup>
