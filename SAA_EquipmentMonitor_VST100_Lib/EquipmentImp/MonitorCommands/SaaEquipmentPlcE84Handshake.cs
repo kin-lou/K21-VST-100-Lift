@@ -1050,7 +1050,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                 OPER = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.OPER.ToString()].ToString()! : string.Empty,
                                 CARRIERSTATE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.CARRIERSTATE.ToString()].ToString()! : string.Empty,
                                 DESTINATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString()! : string.Empty,
-                                LOCATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString() == SAA_DatabaseEnum.LOCATIONTYPE.Buffer_Global.ToString() ? SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString() : SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString() : string.Empty,
+                                LOCATIONTYPE = equipmentcarrierinfo?.Rows.Count != 0 ? equipmentcarrierinfo?.Rows[0][SAA_DatabaseEnum.SC_EQUIPMENT_CARRIER_INFO.DESTINATIONTYPE.ToString()].ToString() == SAA_DatabaseEnum.LOCATIONTYPE.Buffer_Global.ToString() ? SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString() : SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString() : SAA_DatabaseEnum.LOCATIONTYPE.Shelf.ToString(),
                             };
 
                             SaaScLocationSetting locationsettingremote = new SaaScLocationSetting
