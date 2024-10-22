@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SAA_EquipmentMonitor_VST100_Lib.DataTableAttributes;
+using SAA_EquipmentMonitor_VST100_Lib.EquipmentAttributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,9 @@ namespace SAA_EquipmentMonitor_VST100_Lib.Controllers
         public delegate void DelLiftE84PcListData(SaaScLiftE84Pc LiftE84Pc);
         public static event DelLiftE84PcListData? OnLiftE84PcData;
 
+        public delegate void DeShelfMaxAmountData(SaaEquipmentShelfMaxAmount ShelfMaxAmount);
+        public static event DeShelfMaxAmountData? OnShelfMaxAmountData;
+
         [Route("SaaEquipmentMonitorE84PcSendStart")]
         [HttpPost]
         public string SaaEquipmentMonitorE84PcSendStart([FromBody] SaaScLiftE84iLisPc data)
@@ -22,7 +26,7 @@ namespace SAA_EquipmentMonitor_VST100_Lib.Controllers
             {
                 if (data != null)
                 {
-                    SAA_Database.LogMessage($"E84站點:TASKDATETIME:{data.TASKDATETIME}，STATION_NAME:{data.STATION_NAME}，SHUTTLEID:{data.SHUTTLEID}");
+                    SAA_Database.LogMessage($"【{data.STATION_NAME}】E84站點:TASKDATETIME:{data.TASKDATETIME}，STATION_NAME:{data.STATION_NAME}，SHUTTLEID:{data.SHUTTLEID}");
                     SaaScLiftE84Pc LiftE84Pc = new SaaScLiftE84Pc
                     {
                         TASKDATETIME = data.TASKDATETIME,
@@ -49,32 +53,27 @@ namespace SAA_EquipmentMonitor_VST100_Lib.Controllers
                         VS_1 = data.VS_1 == SAA_DatabaseEnum.E84DataStatus.True.ToString() ? 1 : 0,
                     };
                     OnLiftE84PcData?.Invoke(LiftE84Pc);
-                    //if (LiftE84Pc.STATION_NAME == SAA_Database.configattributes.SaaEquipmentNameOut)
-                    //{
-                    //    OnLiftE84PcData?.Invoke(LiftE84Pc);
-                    //    while (true)
-                    //    {
-                    //        if (SAA_Database.E84OutData)
-                    //        {
-                    //            SAA_Database.E84OutData = false;
-                    //            break;
-                    //        }
-                    //        Thread.Sleep(50);
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    OnLiftE84PcInData?.Invoke(LiftE84Pc);
-                    //    while (true)
-                    //    {
-                    //        if (SAA_Database.E84InData)
-                    //        {
-                    //            SAA_Database.E84InData = false;
-                    //            break;
-                    //        }
-                    //        Thread.Sleep(50);
-                    //    }
-                    //}
+                    return SAA_Database.configattributes.WebApiResultOK;
+                }
+                return SAA_Database.configattributes.WebApiResultFAIL;
+            }
+            catch (Exception ex)
+            {
+                SAA_Database.LogMessage($"{ex.Message}-{ex.StackTrace}", SAA_DatabaseEnum.LogType.Error);
+                return SAA_Database.configattributes.WebApiResultFAIL;
+            }
+        }
+
+        [Route("SaaEquipmentMonitorShelfMaxAmount")]
+        [HttpPost]
+        public string SaaEquipmentMonitorShelfMaxAmount([FromBody] SaaEquipmentShelfMaxAmount data)
+        {
+            try
+            {
+                if (data != null)
+                {
+                    SAA_Database.LogMessage($"【{data.StationName}】實盒最大數量:{data.MaterialCount}，空盒最大數量:{data.EmptyCount}，分散式儲格最大數量");
+                    OnShelfMaxAmountData?.Invoke(data);
                     return SAA_Database.configattributes.WebApiResultOK;
                 }
                 return SAA_Database.configattributes.WebApiResultFAIL;

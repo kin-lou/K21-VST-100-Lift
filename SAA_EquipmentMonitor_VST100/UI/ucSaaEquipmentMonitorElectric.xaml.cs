@@ -39,7 +39,14 @@ namespace SAA_EquipmentMonitor_VST100.UI
             }
             BtnMenu.IsEnabled = false;
             GetGrid(_mSaaEquipmentMonitorHome);
+            _mSaaEquipmentMonitorHome.OnDataHome += _mSaaEquipmentMonitorHome_OnDataHome;
         }
+
+        private void _mSaaEquipmentMonitorHome_OnDataHome(App.BtnName home)
+        {
+            UIInfo(home.ToString());
+        }
+
         private void BtnHome_Click(object sender, RoutedEventArgs e)
         {
             try

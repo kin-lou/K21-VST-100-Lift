@@ -974,16 +974,40 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
             return SaaSql.QuerySqlByAutoOpen("Select * From SC_REJECT_LIST_PLC Where  REMOTE_REJECT_CODE = '" + remoterejectcode + "'")!;
         }
 
-        public DataTable GetScLocationSettingLocationType(string statiom_name, string locationtype)
+        public DataTable GetScTransportrEquirementCarrierState(string statiom_name, string carrierstate)
         {
-            //SAA_Database.LogMessage("Select * From SC_LOCATIONSETTING Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And CARRIERID = '" + locationsetting.CARRIERID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "' And LOCATIONTYPE = 'Shelf' ");
-            return SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING_iLIS Where STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + locationtype + "' And CARRIERID = ''")!;
+            DataTable sqlreport;
+            while (true)
+            {
+                sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING Where CARRIERSTATE = '" + carrierstate + "' And STATIOM_NAME ='" + statiom_name + "'")!;
+                SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING Where CARRIERSTATE = '" + carrierstate + "' And STATIOM_NAME ='" + statiom_name + "'");
+                if (sqlreport != null) break;
+            }
+            return sqlreport;
         }
 
-        public DataTable GetScLocationSettingLocationTypeCell(string statiom_name, string locationtype)
+        public DataTable GetScTransportrEquirementShelfGlobalCount(string statiom_name, string shelf_global)
         {
-            //SAA_Database.LogMessage("Select * From SC_LOCATIONSETTING Where SETNO = '" + locationsetting.SETNO + "' And MODEL_NAME = '" + locationsetting.MODEL_NAME + "' And CARRIERID = '" + locationsetting.CARRIERID + "' And STATIOM_NAME ='" + locationsetting.STATIOM_NAME + "' And LOCATIONTYPE = 'Shelf' ");
-            return SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING_iLIS Where STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + locationtype + "'")!;
+            DataTable sqlreport;
+            while (true)
+            {
+                sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + shelf_global + "'")!;
+                SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + shelf_global + "'");
+                if (sqlreport != null) break;
+            }
+            return sqlreport;
+        }
+
+        public DataTable GetScEquipmentShelfMax(string station_name)
+        {
+            DataTable sqlreport;
+            while (true)
+            {
+                sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_EQUIPMENT_SHELF_MAX Where STATION_NAME ='" + station_name + "'")!;
+                SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_EQUIPMENT_SHELF_MAX Where STATION_NAME ='" + station_name + "'");
+                if (sqlreport != null) break;
+            }
+            return sqlreport;
         }
     }
 }
