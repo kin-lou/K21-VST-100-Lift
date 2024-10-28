@@ -64,12 +64,12 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
         {
             if (EquipmentStation == ShelfMaxAmount.StationName)
             {
-                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "68", ShelfMaxAmount.MaterialCount);
-                SAA_Database.LogMessage($"【{ShelfMaxAmount.StationName}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}68】PC寫實盒最大數量:{ShelfMaxAmount.MaterialCount}");
-                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "69", ShelfMaxAmount.EmptyCount);
-                SAA_Database.LogMessage($"【{ShelfMaxAmount.StationName}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}69】PC寫入空盒最大數量:{ShelfMaxAmount.EmptyCount}");
-                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "6A", ShelfMaxAmount.ShelfGloBalCount);
-                SAA_Database.LogMessage($"【{ShelfMaxAmount.StationName}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}6A】PC寫入分散式儲格最大數量:{ShelfMaxAmount.ShelfGloBalCount}");
+                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "48", ShelfMaxAmount.MaterialCount);
+                SAA_Database.LogMessage($"【{ShelfMaxAmount.StationName}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}48】PC寫實盒最大數量:{ShelfMaxAmount.MaterialCount}");
+                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "49", ShelfMaxAmount.EmptyCount);
+                SAA_Database.LogMessage($"【{ShelfMaxAmount.StationName}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}49】PC寫入空盒最大數量:{ShelfMaxAmount.EmptyCount}");
+                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "4A", ShelfMaxAmount.ShelfGloBalCount);
+                SAA_Database.LogMessage($"【{ShelfMaxAmount.StationName}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}4A】PC寫入分散式儲格最大數量:{ShelfMaxAmount.ShelfGloBalCount}");
             }
         }
 
@@ -587,12 +587,12 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                 int material_max = equipmentshelfmaxdata?.Rows.Count != 0 ? int.Parse(equipmentshelfmaxdata?.Rows[0]["MATERIAL_MAX"].ToString()!) : 0;
                 int empty_max = equipmentshelfmaxdata?.Rows.Count != 0 ? int.Parse(equipmentshelfmaxdata?.Rows[0]["EMPTY_MAX"].ToString()!) : 0;
                 int shelf_global_max = equipmentshelfmaxdata?.Rows.Count != 0 ? int.Parse(equipmentshelfmaxdata?.Rows[0]["SHELF_GLOBAL_MAX"].ToString()!) : 0;
-                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "68", material_max);
-                SAA_Database.LogMessage($"【{station_naem}】【初始化】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}68】PC寫實盒最大數量:{material_max}");
-                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "69", empty_max);
-                SAA_Database.LogMessage($"【{station_naem}】【初始化】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}69】PC寫入空盒最大數量:{empty_max}");
-                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "6A", shelf_global_max);
-                SAA_Database.LogMessage($"【{station_naem}】【初始化】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}6A】PC寫入分散式儲格最大數量:{shelf_global_max}");
+                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "48", material_max);
+                SAA_Database.LogMessage($"【{station_naem}】【初始化】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}48】PC寫實盒最大數量:{material_max}");
+                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "49", empty_max);
+                SAA_Database.LogMessage($"【{station_naem}】【初始化】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}49】PC寫入空盒最大數量:{empty_max}");
+                SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "4A", shelf_global_max);
+                SAA_Database.LogMessage($"【{station_naem}】【初始化】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}4A】PC寫入分散式儲格最大數量:{shelf_global_max}");
             }
             if (EquipmentOffset.PlcRequest != null)
             {
@@ -704,15 +704,15 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     {
                                         SAA_Database.SaaSql?.UpdScLocationSettingLocationType(locationsettinglocal);
                                         SAA_Database.LogMessage($"【{station_naem}】【更新資料】更新儲格 儲格位置: {locationsettinglocal.LOCATIONID}，卡匣ID:{locationsettinglocal.CARRIERID}，HOSTID儲格名稱:{locationsettinglocal.HOSTID}，變更儲格屬性:{locationsettinglocal.LOCATIONTYPE}");
-                                        short emptycount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementCarrierState(locationsettinglocal.STATIOM_NAME, SAA_DatabaseEnum.CarrierState.Empty.ToString()).Rows.Count!;
-                                        short materialcount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementCarrierState(locationsettinglocal.STATIOM_NAME, SAA_DatabaseEnum.CarrierState.Material.ToString()).Rows.Count!;
-                                        short shelfglobalcount = (short)SAA_Database.SaaSql.GetScTransportrEquirementShelfGlobalCount(locationsettinglocal.STATIOM_NAME, SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString()).Rows.Count!;
-                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "60", materialcount);
-                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}60】PC寫實盒數量:{materialcount}");
-                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "61", emptycount);
-                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}61】PC寫入空盒數量:{emptycount}");
-                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "62", shelfglobalcount);
-                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}62】PC寫入分散式儲格數量:{shelfglobalcount}");
+                                        short emptycount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementShelfEmptyCount(locationsettinglocal.STATIOM_NAME).Rows.Count!;
+                                        short materialcount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementShelfMaterialCount(locationsettinglocal.STATIOM_NAME).Rows.Count!;
+                                        short shelfglobalcount = (short)SAA_Database.SaaSql.GetScTransportrEquirementShelfGlobalCount(locationsettinglocal.STATIOM_NAME).Rows.Count!;
+                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "40", materialcount);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}40】PC寫實盒數量:{materialcount}");
+                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "41", emptycount);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}41】PC寫入空盒數量:{emptycount}");
+                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "42", shelfglobalcount);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}42】PC寫入分散式儲格數量:{shelfglobalcount}");
                                     }
                                     else
                                     {
@@ -736,15 +736,15 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                                     {
                                         SAA_Database.SaaSql?.UpdScLocationSettingLocationType(locationsettingremote);
                                         SAA_Database.LogMessage($"【{station_naem}】【更新資料】清除儲格 儲格位置: {locationsettingremote.LOCATIONID}，儲格屬性:{locationsettingremote.LOCATIONTYPE}，HOSTID位置名稱:{locationsettingremote.HOSTID}");
-                                        short emptycount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementCarrierState(locationsettingremote.STATIOM_NAME, SAA_DatabaseEnum.CarrierState.Empty.ToString()).Rows.Count!;
-                                        short materialcount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementCarrierState(locationsettingremote.STATIOM_NAME, SAA_DatabaseEnum.CarrierState.Material.ToString()).Rows.Count!;
-                                        short shelfglobalcount = (short)SAA_Database.SaaSql.GetScTransportrEquirementShelfGlobalCount(locationsettingremote.STATIOM_NAME, SAA_DatabaseEnum.LOCATIONTYPE.Shelf_Global.ToString()).Rows.Count!;
-                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "60", materialcount);
-                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}60】PC寫實盒數量:{materialcount}");
-                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "61", emptycount);
-                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}61】PC寫入空盒數量:{emptycount}");
-                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "62", shelfglobalcount);
-                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}62】PC寫入分散式儲格數量:{shelfglobalcount}");
+										short emptycount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementShelfEmptyCount(locationsettinglocal.STATIOM_NAME).Rows.Count!;
+										short materialcount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementShelfMaterialCount(locationsettinglocal.STATIOM_NAME).Rows.Count!;
+										short shelfglobalcount = (short)SAA_Database.SaaSql.GetScTransportrEquirementShelfGlobalCount(locationsettinglocal.STATIOM_NAME).Rows.Count!;
+										SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "40", materialcount);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}40】PC寫實盒數量:{materialcount}");
+                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "41", emptycount);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}41】PC寫入空盒數量:{emptycount}");
+                                        SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "42", shelfglobalcount);
+                                        SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}42】PC寫入分散式儲格數量:{shelfglobalcount}");
                                     }
                                     else
                                     {
@@ -1770,7 +1770,17 @@ namespace SAA_EquipmentMonitor_VST100_Lib.EquipmentImp.MonitorCommands
                     SaaEquipmentPlc?.WriteIntArray(SAA_Database.saaequipmentbitoffset.SaaDB_TrackAck, SAA_Database.saaequipmentbitoffset.SaaValue_TrackAck, plcmodel);
                     SAA_Database.LogMessage($"【{station_naem}】【模式切換】【{SAA_Database.saaequipmentbitoffset.SaaDB_SynchronizeAck}{SAA_Database.saaequipmentbitoffset.SaaValue_SynchronizeAck}】資料同步模式停止");
                     SAA_Database.LogMessage($"【{station_naem}】【模式切換】【{SAA_Database.saaequipmentbitoffset.SaaDB_TrackAck}{SAA_Database.saaequipmentbitoffset.SaaValue_TrackAck}】物料追蹤模式開始");
-                    var purchasedata = SAA_Database.SaaSql?.GetScPurchaseTask(station_naem);
+
+					short emptycount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementShelfEmptyCount(station_naem).Rows.Count!;
+					short materialcount = (short)SAA_Database.SaaSql?.GetScTransportrEquirementShelfMaterialCount(station_naem).Rows.Count!;
+					short shelfglobalcount = (short)SAA_Database.SaaSql.GetScTransportrEquirementShelfGlobalCount(station_naem).Rows.Count!;
+					SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "40", materialcount);
+					SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}40】PC寫實盒數量:{materialcount}");
+					SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "41", emptycount);
+					SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}41】PC寫入空盒數量:{emptycount}");
+					SaaEquipmentPlc?.WriteInt(SAA_Database.configattributes.SaaOffsetWord, "42", shelfglobalcount);
+					SAA_Database.LogMessage($"【{station_naem}】【更新資料】【{SAA_Database.configattributes.SaaOffsetWord}42】PC寫入分散式儲格數量:{shelfglobalcount}");
+					var purchasedata = SAA_Database.SaaSql?.GetScPurchaseTask(station_naem);
                     if (purchasedata!.Rows.Count != 0)
                     {
                         Reply = true;

@@ -986,19 +986,40 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
             return sqlreport;
         }
 
-        public DataTable GetScTransportrEquirementShelfGlobalCount(string statiom_name, string shelf_global)
-        {
-            DataTable sqlreport;
-            while (true)
-            {
-                sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + shelf_global + "'")!;
-                SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = '" + shelf_global + "'");
-                if (sqlreport != null) break;
-            }
-            return sqlreport;
-        }
+		public DataTable GetScTransportrEquirementShelfGlobalCount(string statiom_name) {
+			DataTable sqlreport;
+			while (true) {
+				sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = 'Shelf_Global' And CARRIERSTATE = 'Material'")!;
+				SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = 'Shelf_Global' And CARRIERSTATE = 'Material'");
+				if (sqlreport != null)
+					break;
+			}
+			return sqlreport;
+		}
 
-        public DataTable GetScEquipmentShelfMax(string station_name)
+		public DataTable GetScTransportrEquirementShelfEmptyCount(string statiom_name) {
+			DataTable sqlreport;
+			while (true) {
+				sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = 'Shelf' And CARRIERSTATE = 'Empty'")!;
+				SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = 'Shelf' And CARRIERSTATE = 'Empty'");
+				if (sqlreport != null)
+					break;
+			}
+			return sqlreport;
+		}
+
+		public DataTable GetScTransportrEquirementShelfMaterialCount(string statiom_name) {
+			DataTable sqlreport;
+			while (true) {
+				sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = 'Shelf' And CARRIERSTATE = 'Material'")!;
+				SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING Where CARRIERID <> '' And STATIOM_NAME ='" + statiom_name + "' And LOCATIONTYPE = 'Shelf' And CARRIERSTATE = 'Material'");
+				if (sqlreport != null)
+					break;
+			}
+			return sqlreport;
+		}
+
+		public DataTable GetScEquipmentShelfMax(string station_name)
         {
             DataTable sqlreport;
             while (true)
