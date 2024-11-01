@@ -1019,6 +1019,17 @@ namespace SAA_EquipmentMonitor_VST100_Lib.MsSqlData
 			return sqlreport;
 		}
 
+		public DataTable GetScTransportrEquirementShelfType(string statiom_name) {
+			DataTable sqlreport;
+			while (true) {
+				sqlreport = SaaSql.QuerySqlByAutoOpen("Select * From SC_LOCATIONSETTING Where LOCATIONID >= '10101' AND LOCATIONID <= '11616' And STATIOM_NAME ='" + statiom_name + "'")!;
+				SAA_Database.LogMessage($"【查詢SQL方法】【查詢結果:{sqlreport}】Select * From SC_LOCATIONSETTING Where LOCATIONID >= '10101' AND LOCATIONID <= '11616' And STATIOM_NAME = '" + statiom_name + "'");
+				if (sqlreport != null)
+					break;
+			}
+			return sqlreport;
+		}
+
 		public DataTable GetScEquipmentShelfMax(string station_name)
         {
             DataTable sqlreport;
